@@ -1,0 +1,30 @@
+Installation instructions
+-------------------------
+
+xfce4-dockbarx-plugin uses the waf build system, and has the following
+dependencies:
+
+ - Vala >= 0.12
+ - GLib >= 2.10
+ - GTK+ >= 2.16
+ - Xfce4-Panel >= 4.8
+ - DockBarX >= 0.49
+
+As Xfce's Vala bindings are typically not in repositories, they are included.
+
+To configure, build, and install xfce4-dockbarx-plugin, run these commands:
+
+ ./waf configure
+ ./waf build
+ sudo ./waf install
+
+If you are using a distribution that supports checkinstall, you can do the
+following instead of sudo ./waf install to install this in your package manager:
+
+ sudo ./waf checkinstall
+
+Use ./waf --help to get a list of configuration and installation options.
+
+xfce4-panel may not detect the plugin unless you install in the /usr prefix.
+
+ ./waf configure --prefix=/usr

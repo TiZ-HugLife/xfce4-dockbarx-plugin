@@ -1,0 +1,33 @@
+xfce4-dockbarx-plugin, v0.2.1
+-----------------------------
+
+xfce4-dockbarx-plugin is free software. Please see the file COPYING for details.
+For building and installation instructions please see the INSTALL file. For
+information on the authors of this program, see AUTHORS and THANKS.
+
+xfce4-dockbarx-plugin is a pair of programs, one in Vala and one in Python, that
+work together to embed DockbarX into xfce4-panel. See THANKS for details on
+DockbarX. Because this is not a port and just grabs the pre-existing DockbarX,
+you immediately benefit from any updates made to DBX, and already have all the
+pre-existing functionality.
+
+The old version of this plugin tried to blend in with the panel, and due to
+limitations with the Vala bindings for Xfconf, could only blend in with panel-0.
+You were pretty much out of luck if panel-0 didn't exist.
+
+The new version uses manual configuration to determine background styling.
+When you first start the plugin, a dialog will appear that will allow you to
+configure the way the background is drawn. You can then configure it to blend
+in with the panel it's on... or you can even choose for it *not* to blend in!
+Since you can choose for it not to blend in, you can also expand it if you want.
+The plugin will automatically detect panel orientation and screen position, and
+communicates this info to the python DBX plug. Whenever the configuration is
+changed, the plug is restarted.
+
+This plugin includes a DockbarX theme called Mouse, created by me for use with
+xfce4-panel (but should work fine on Gnome/Mate panels, AWN, or DockX). There
+are two variant versions for varying levels of x/ythickness on the panel widgets
+to make them match up nicely. If a theme gives panel widgets differing
+x/ythickness, its author is a sick bastard.
+
+Enjoy using DockbarX on Xfce! :)

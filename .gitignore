@@ -1,0 +1,5 @@
+build
+.waf*
+.lock-waf_linux_build
+*.geany
+xfce4-dockbarx-plugin*.tar.bz2

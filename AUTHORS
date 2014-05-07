@@ -1,0 +1,7 @@
+Authors
+-------
+
+Aleksey Shaferov developed the original Dockbar for gnome-panel.
+Matias Särs developed its fork, DockBarX. See THANKS for more details on DockbarX.
+Included Vala bindings for Xfce4 developed by Mike Masonnet <mmasonnet@xfce.org>.
+Trent McPheron <twilightinzero@gmail.com> originally developed the Xfce4 plugin for DockbarX.

@@ -1,0 +1,9 @@
+[Xfce Panel]
+Type=X-XFCE-PanelPlugin
+Encoding=UTF-8
+Name=DockbarX
+Comment=Dock-style taskbar with grouping and group manipulation.
+Icon=dockbarx
+X-XFCE-Unique=true
+X-XFCE-Module=dockbarx
+X-XFCE-Internal=false

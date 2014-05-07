@@ -1,0 +1,22 @@
+Change Log
+----------
+
+0.1:
+- Initial version with all significant functionality implemented.
+
+0.2:
+- True version that doesn't do everything in the most terrible way possible.
+  "If you can't determine it gracefully, ask the user." That is a good
+  programming rule.
+- The DBX plug reads all configuration info from the RC file as opposed to
+  having it communicated over the command line.
+- Presents the configuration dialog at first run to allow the user to configure
+  background styling.
+- Automatically detects orientation and screen position, and communicates them
+  to the DBX plug.
+- Still just rudely kills off the plug whenever a configuration change occurs,
+  but it works so I'm not gonna fix it.
+
+0.2.1:
+- Wait a tiny bit before starting DockbarX to prevent wonkiness.
+- This version is uploaded to github so others can file issues and make changes. This is no longer my baby. It is yours now, community. Raise it well. :')

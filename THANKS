@@ -1,0 +1,19 @@
+Special Thanks
+--------------
+
+xfce4-dockbarx-plugin embeds the DockBarX applet by Matias Särs. It can be found
+at the following URL:
+
+http://gnome-look.org/content/show.php?content=101604
+
+Thanks to Matias for his blessings on the project.
+
+And also thanks to:
+- The authors of Vala, for a great programming language that brings the power
+  and universality of C to a modern, easy to learn C#-like language.
+- The authors of waf for an easy to use, intuitive build system.
+- The members of the various IRC channels that helped me on my way with Vala
+  and waf.
+- The authors of XFCE for a great desktop environment.
+- The authors of the Vala bindings for XFCE, without which this port would not
+  be possible.
