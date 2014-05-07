@@ -16,8 +16,9 @@ This plugin includes a DockbarX theme called Mouse, created by me for use with x
 
 ## Okay, I'm sold! Gimme the goods!
 Some distros already have it packaged in some form:
-* Arch Linux / Manjaro users can install from the AUR: https://aur.archlinux.org/packages/xfce4-dockbarx-plugin/
-* Ubuntu users can install from the Dockbar PPA: https://launchpad.net/~dockbar-main/+archive/ppa
+* Arch Linux / Manjaro users can install from the [AUR](https://aur.archlinux.org/packages/xfce4-dockbarx-plugin/).
+* Ubuntu users can install from the [Dockbar PPA](https://launchpad.net/~dockbar-main/+archive/ppa).
+* The stable source release can be found on [Xfce-Look](http://xfce-look.org/content/show.php?content=157865).
 
 If you want to (or have to) install from source, you need the following dependencies:
 
