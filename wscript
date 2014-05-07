@@ -80,7 +80,7 @@ def build (ctx):
         '${PREFIX}/share/dockbarx/themes/',
         'data/Mouse-6.tar.gz')
     ctx.install_as(
-        '${PREFIX}/share/xfce4/panel/plugins/xfce4-dockbarx-plug',
+        '/usr/share/xfce4/panel/plugins/xfce4-dockbarx-plug',
         'src/xfce4-dockbarx-plug.py',
         chmod=0o755)
 

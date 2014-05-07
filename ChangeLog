@@ -1,8 +1,10 @@
 Change Log
 ----------
 
-0.1:
-- Initial version with all significant functionality implemented.
+0.2.1:
+- Wait one second before starting DockbarX to prevent wonkiness.
+- Move the plug program out of $PREFIX/bin because there's no point letting users start it outside of the plugin. On the downside... the path to that program is hardcoded, and will only go into /usr/share/xfce4/panel/plugins. I could never figure out how to get Vala defines to work in waf.
+- This version is uploaded to github so others can file issues and make changes. This is no longer my baby. It is yours now, community. Raise it well. :')
 
 0.2:
 - True version that doesn't do everything in the most terrible way possible.
@@ -17,6 +19,5 @@ Change Log
 - Still just rudely kills off the plug whenever a configuration change occurs,
   but it works so I'm not gonna fix it.
 
-0.2.1:
-- Wait a tiny bit before starting DockbarX to prevent wonkiness.
-- This version is uploaded to github so others can file issues and make changes. This is no longer my baby. It is yours now, community. Raise it well. :')
+0.1:
+- Initial version with all significant functionality implemented.
