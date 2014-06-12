@@ -116,10 +116,7 @@ class DockBarXFCEPlug(gtk.Plug):
 
         # Load and insert DBX.
         self.dockbar = db.DockBar(parent_window=self)
-        self.dockbar.orient = orient
-        if orient in ("left", "right"):
-            self.dockbar.container.destroy()
-            self.dockbar.container = gtk.VBox()
+        self.dockbar.set_orient(orient)
         self.add(self.dockbar.container)
         self.show_all()
 
