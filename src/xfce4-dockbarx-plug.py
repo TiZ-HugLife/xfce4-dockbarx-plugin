@@ -39,61 +39,10 @@ import cairo
 import gobject
 
 import dockbarx.dockbar as db
-import dockbarx.cairowidgets as cw
 from dockbarx.common import Globals
-from dockbarx.theme import DockTheme
 from ConfigParser import SafeConfigParser
 
-# This overrides the update function in CairoAppButton so that
-# draws will work properly, and we won't have to modify the
-# DockbarX source. If you compare these functions, you can see
-# that the only difference is that clear_area_e is used even if
-# we're not DockX. We're not DockX, so it's an important
-# difference that we need to have!
-original_update = cw.CairoAppButton.update
-def new_update(self, surface=None):
-    a = self.area.get_allocation()
-    if surface is not None:
-        self.surface = surface
-    if self.window is None:
-        return
-    self.area.window.clear_area_e(a.x, a.y, a.width, a.height)
-    ctx = self.area.window.cairo_create()
-    ctx.rectangle(a.x, a.y, a.width, a.height)
-    ctx.clip()
-    ctx.set_source_surface(self.surface, a.x, a.y)
-    ctx.paint()
-    for surface in (self.badge, self.progress_bar):
-        if surface is not None:
-            ctx.rectangle(a.x, a.y, a.width, a.height)
-            ctx.clip()
-            ctx.set_source_surface(surface, a.x, a.y)
-            ctx.paint()
-    child = self.area.get_child()
-    if child:
-        child.queue_draw()
-cw.CairoAppButton.update = new_update
 
-# This overrides the desktop item editor to prefer exo.
-original_edit_launcher = db.DockBar.edit_launcher
-def new_edit_launcher(self, path, identifier):
-    launcher_dir = os.path.join(os.path.expanduser("~"),
-                                ".dockbarx", "launchers")
-    if not os.path.exists(launcher_dir):
-        os.makedirs(launcher_dir)
-    if path:
-        if not os.path.exists(path):
-            logger.warning("Error: file %s doesn't exist."%path)
-        new_path = os.path.join(launcher_dir, os.path.basename(path))
-        if new_path != path:
-            os.system("cp %s %s"%(path, new_path))
-    else:
-        new_path = os.path.join(launcher_dir, "%s.desktop"%identifier)
-    process = subprocess.Popen(["exo-desktop-item-edit", new_path],
-                               env=os.environ)
-    gobject.timeout_add(100, self.__wait_for_launcher_editor,
-                        process, path, new_path, identifier)
-db.DockBar.edit_launcher = new_edit_launcher
 
 # A very minimal plug application that loads DockbarX
 # so that the embed plugin can, well, embed it.
@@ -115,9 +64,11 @@ class DockBarXFCEPlug(gtk.Plug):
         self.set_colormap(colormap)
 
         # Load and insert DBX.
-        self.dockbar = db.DockBar(parent_window=self)
+        self.dockbar = db.DockBar(self)
         self.dockbar.set_orient(orient)
-        self.add(self.dockbar.container)
+        self.dockbar.set_expose_on_clear(True)
+        self.dockbar.load()
+        self.add(self.dockbar.groups.box)
         self.show_all()
 
     # This is basically going to do what xfce4-panel
@@ -138,7 +89,6 @@ class DockBarXFCEPlug(gtk.Plug):
     # Destructor?
     def destroy (self, widget, data=None):
         gtk.main_quit()
-
 
 # Init the variables to default values.
 socket = 0
