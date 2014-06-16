@@ -43,7 +43,6 @@ from dockbarx.common import Globals
 from ConfigParser import SafeConfigParser
 
 
-
 # A very minimal plug application that loads DockbarX
 # so that the embed plugin can, well, embed it.
 class DockBarXFCEPlug(gtk.Plug):
