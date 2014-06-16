@@ -22,7 +22,7 @@
 
 # For creating a source archive.
 APPNAME = 'xfce4-dockbarx-plugin'
-VERSION = '0.2.1'
+VERSION = '0.3'
 
 # Required waf stuff.
 top = '.'
@@ -60,7 +60,7 @@ def build (ctx):
         packages     = 'glib-2.0 gtk+-2.0 libxfce4panel-1.0',
         target       = 'dockbarx',
         install_path = '${PREFIX}/lib/xfce4/panel/plugins/',
-        uselib       = 'GLIB GTK XFCE4PANEL XFCONF')
+        uselib       = 'GLIB GTK XFCE4PANEL')
 
     # Install other files.
     ctx(
