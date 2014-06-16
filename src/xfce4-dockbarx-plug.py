@@ -68,7 +68,7 @@ class DockBarXFCEPlug(gtk.Plug):
         self.dockbar.set_orient(orient)
         self.dockbar.set_expose_on_clear(True)
         self.dockbar.load()
-        self.add(self.dockbar.groups.box)
+        self.add(self.dockbar.get_container())
         self.show_all()
 
     # This is basically going to do what xfce4-panel
