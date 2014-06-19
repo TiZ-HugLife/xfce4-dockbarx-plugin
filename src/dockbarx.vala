@@ -40,6 +40,7 @@ public class DockbarXPlugin : PanelPlugin {
     public  uint8        alpha       { get; set; }
     public  string       image       { get; set; }
     public  int          offset      { get; set; }
+    public  int          max_size    { get; set; }
     public  bool         config      { get; set; }
     public  string       orient      { get; set; }
     public  bool         free_orient { get; set; default = false; }
@@ -63,6 +64,7 @@ public class DockbarXPlugin : PanelPlugin {
                 alpha=100
                 image=
                 offset=0
+                max_size=0
                 orient=bottom
                 expand=false
             """, -1, KeyFileFlags.NONE);
@@ -81,6 +83,7 @@ public class DockbarXPlugin : PanelPlugin {
             alpha = (uint8)keyfile.get_integer(section, "alpha");
             image = keyfile.get_string(section, "image");
             offset = keyfile.get_integer(section, "offset");
+            max_size = keyfile.get_integer(section, "max_size");
             orient = keyfile.get_string(section, "orient");
             expand = keyfile.get_boolean(section, "expand");
         } catch {
@@ -158,6 +161,7 @@ public class DockbarXPlugin : PanelPlugin {
             keyfile.set_integer(section, "alpha", alpha);
             keyfile.set_string(section, "image", image);
             keyfile.set_integer(section, "offset", offset);
+            keyfile.set_integer(section, "max_size", max_size);
             keyfile.set_string(section, "orient", orient);
             keyfile.set_boolean(section, "expand", expand);
             FileUtils.set_contents(save_location(true), keyfile.to_data(null));

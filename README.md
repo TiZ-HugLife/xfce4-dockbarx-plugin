@@ -1,5 +1,5 @@
 # xfce4-dockbarx-plugin
-### ver. 0.3
+### ver. 0.3.1
 
 ## About xfce4-dockbarx-plugin
 xfce4-dockbarx-plugin is free software. Please see the file COPYING for details. For building and installation instructions please see the INSTALL file. For information on the authors of this program, see AUTHORS and THANKS.

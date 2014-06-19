@@ -32,6 +32,7 @@ class PrefDialog : Dialog {
     private HScale            alpha_scale;
     private FileChooserButton image_button;
     private SpinButton        offset_spin;
+    private SpinButton        max_size_spin;
     private CheckButton       expand_check;
 
     public PrefDialog (DockbarXPlugin plugin) {
@@ -62,6 +63,7 @@ class PrefDialog : Dialog {
         image_button = new FileChooserButton("Select background image",
          FileChooserAction.OPEN);
         offset_spin = new SpinButton.with_range(-4096, 4096, 1);
+        max_size_spin = new SpinButton.with_range(0, 4096, 1);
         expand_check = new CheckButton.with_label("Expand");
 
         // Bottom/Top change to Left/Right if the panel's vertical.
@@ -113,13 +115,18 @@ class PrefDialog : Dialog {
          AttachOptions.FILL, 0, 0, 0);
         image_frame.add(image_table);
 
+        var size_box = new HBox(false, 2);
+        size_box.pack_start(new Label("Max size:"));
+        size_box.pack_start(max_size_spin);
+        size_box.pack_start(expand_check);
+
         // Put it all together.
         if (!plugin.free_orient) {
             content.pack_start(orient_frame);
         }
         content.pack_start(color_frame);
         content.pack_start(image_frame);
-        content.pack_start(expand_check);
+        content.pack_start(size_box);
 
         // Add some buttons.
         add_button(Stock.APPLY, ResponseType.APPLY);
@@ -169,6 +176,9 @@ class PrefDialog : Dialog {
         });
         offset_spin.value_changed.connect(() => {
             plugin.offset = (int)offset_spin.value;
+        });
+        max_size_spin.value_changed.connect(() => {
+            plugin.max_size = (int)max_size_spin.value;
         });
         expand_check.toggled.connect(() => {
             plugin.expand = expand_check.active;

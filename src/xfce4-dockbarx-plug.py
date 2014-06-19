@@ -50,10 +50,12 @@ class DockBarXFCEPlug(gtk.Plug):
     __gsignals__ = {"expose-event": "override"}
 
     # Constructor!
-    def __init__ (self, socket, cairo_pattern, orient):
+    def __init__ (self, socket, cairo_pattern, orient, max_size, expand):
         # Set up the window.
         gtk.Plug.__init__(self, socket)
         self.pattern = cairo_pattern
+        self.max_size = max_size
+        self.expand = expand
         self.set_name("Xfce4DockBarXPlug")
         self.connect("destroy", self.destroy)
         self.set_app_paintable(True)
@@ -68,7 +70,16 @@ class DockBarXFCEPlug(gtk.Plug):
         self.dockbar.set_expose_on_clear(True)
         self.dockbar.load()
         self.add(self.dockbar.get_container())
+        self.dockbar.set_max_size(self.max_size)
         self.show_all()
+
+    def readd_container(self, container):
+        # Dockbar calls back with this function when it is reloaded
+        # since the old container has been destroyed in the reload
+        # and needs to be added again.
+        self.add(container)
+        self.dockbar.set_max_size(self.max_size)
+        container.show_all()
 
     # This is basically going to do what xfce4-panel
     # does on its own expose events.
@@ -119,12 +130,15 @@ if config == "":
 # Default config.
 default_conf = """
 [Xfce4DockbarX]
+config=false
 mode=0
 color=#3c3c3c
 alpha=100
-image=null
+image=
 offset=0
+max_size=0
 orient=bottom
+expand=false
 """
 
 # Scope crap.
@@ -133,6 +147,8 @@ color = "#3c3c3c"
 alpha = 100
 image = ""
 offset = 0
+max_size = 0
+expand = False
 orient = "bottom"
 cairo_pattern = None
 section = "Xfce4DockbarX"
@@ -211,6 +227,19 @@ elif mode == 1:
 else:
     sys.exit("Mode must be 0 for color or 1 for image.")
 
+# Size parameters.
+try:
+    max_size = keyfile.getint(section, "max_size")
+    if max_size == 0: max_size = 4096
+except:
+    traceback.print_exc()
+    sys.exit("Max_size must be a positive integer.")
+try:
+    expand = keyfile.getboolean(section, "expand")
+except:
+    traceback.print_exc()
+    sys.exit("Expand must be true or false.")
+
 # Anyways, time to start DBX!
-dockbarxplug = DockBarXFCEPlug(socket, cairo_pattern, orient)
+dockbarxplug = DockBarXFCEPlug(socket, cairo_pattern, orient, max_size, expand)
 gtk.main()

@@ -22,7 +22,7 @@
 
 # For creating a source archive.
 APPNAME = 'xfce4-dockbarx-plugin'
-VERSION = '0.3'
+VERSION = '0.3.1'
 
 # Required waf stuff.
 top = '.'
@@ -79,6 +79,15 @@ def build (ctx):
     ctx.install_files(
         '${PREFIX}/share/dockbarx/themes/',
         'data/Mouse-6.tar.gz')
+    ctx.install_files(
+        '${PREFIX}/share/dockbarx/themes/',
+        'data/MouseNeo.tar.gz')
+    ctx.install_files(
+        '${PREFIX}/share/dockbarx/themes/',
+        'data/MouseNeo-4.tar.gz')
+    ctx.install_files(
+        '${PREFIX}/share/dockbarx/themes/',
+        'data/MouseNeo-6.tar.gz')
     ctx.install_as(
         '/usr/share/xfce4/panel/plugins/xfce4-dockbarx-plug',
         'src/xfce4-dockbarx-plug.py',
