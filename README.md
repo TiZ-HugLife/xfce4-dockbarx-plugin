@@ -1,5 +1,5 @@
 # xfce4-dockbarx-plugin
-### ver. 0.2.1
+### ver. 0.3.1
 
 ## About xfce4-dockbarx-plugin
 xfce4-dockbarx-plugin is free software. Please see the file COPYING for details. For building and installation instructions please see the INSTALL file. For information on the authors of this program, see AUTHORS and THANKS.
@@ -37,7 +37,7 @@ To configure, build, and install, run these commands:
 The panel will probably not detect the plugin unless you install it in the /usr prefix, so instead do the configure step with `./waf configure --prefix=/usr` If you are using a distribution that supports checkinstall, you can replace the install step with `sudo ./waf checkinstall` to install it in your package manager.
 
 ## Awesome! Who do I need to thank for all this?
-* Aleksey Shaferov is the original Dockbar developer.  
+* Aleksey Shaferov is the original Dockbar developer.
 * Matias Särs is the developer of the DockbarX fork.
 * The included Vala bindings were developed by Mike Masonnet.
 * The developers of the Vala and Python languages are to be thanked, of course.
