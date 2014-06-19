@@ -71,6 +71,13 @@ class DockBarXFCEPlug(gtk.Plug):
         self.add(self.dockbar.get_container())
         self.show_all()
 
+    def readd_container(self, container):
+        # Dockbar calls back with this function when it is reloaded
+        # since the old container has been destroyed in the reload
+        # and needs to be added again.
+        self.add(container)
+        container.show_all()
+
     # This is basically going to do what xfce4-panel
     # does on its own expose events.
     def do_expose_event (self, event):
