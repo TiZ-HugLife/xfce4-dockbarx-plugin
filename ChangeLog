@@ -4,6 +4,7 @@ Change Log
 0.3.1:
 - Fixed bug where DBX disappears after changing theme.
 - Fixed bug where DBX restricts itself to an arbitrary size by exposing the max_size property and setting it absurdly high by default.
+- Add MouseNeo themes, with -4 and -6 variants. This version has the highlight background visible on every open group button, to allow you to see open windows easier on noisy wallpapers. The highlight color and opacity can be configured. However there is no launch highlight or hover highlight anymore.
 
 0.3:
 - Modify plug to work with DBX refactoring.
