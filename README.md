@@ -1,5 +1,5 @@
 # xfce4-dockbarx-plugin
-### ver. 0.3.1
+### ver. 0.4
 
 ## About xfce4-dockbarx-plugin
 xfce4-dockbarx-plugin is free software. Please see the file COPYING for details. For building and installation instructions please see the INSTALL file. For information on the authors of this program, see AUTHORS and THANKS.
@@ -10,6 +10,8 @@ xfce4-dockbarx-plugin is a pair of programs--a gtk socket in Vala and a gtk plug
 The old version of this plugin tried to blend in with the panel, and due to limitations with the Vala bindings for Xfconf, could only blend in with panel-0. You were pretty much out of luck if panel-0 didn't exist. The new version uses manual configuration to determine background styling.
 
 When you first start the plugin, a dialog will appear that will allow you to configure the way the background is drawn. You can then configure it to blend in with the panel it's on... or you can even choose for it *not* to blend in! Since you can choose for it not to blend in, you can also expand it if you want. The plugin will automatically detect panel orientation and screen position, and will save that to the config file, which is shared between both the socket and the plug. Whenever the configuration is changed, the plug is restarted.
+
+You can avoid having to manually configure your background by using the panel blend mode, new and default as of 0.4. This makes use of xfconf's dbus interface and python-dbus to retrieve information about the panel background, and also connect to a signal and update it whenever it changes. However, there are still some gotchas; namely, if you use the none style, you need to make sure the color on the solid color style matches your gtk theme's color. And if you use the image style, you still need to make sure the offset is properly configured if you have an image that necessitates it. There's not really any way to get around this. (Though if you have a pull request that would prove me wrong, lay it on me!)
 
 ## Any extras?
 This plugin includes a DockbarX theme called Mouse, created by me for use with xfce4-panel (but should work fine on Gnome/Mate panels, AWN, or DockX). There are two variant versions for varying levels of x/ythickness on the panel widgets to make them match up nicely. If a theme gives different panel widgets differing x/ythickness, its author is a sick bastard.
