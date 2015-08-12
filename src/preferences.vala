@@ -28,11 +28,13 @@ class PrefDialog : Dialog {
     private RadioButton       top_radio;
     private RadioButton       color_radio;
     private RadioButton       image_radio;
+    private RadioButton       blend_radio;
     private ColorButton       color_button;
     private HScale            alpha_scale;
     private FileChooserButton image_button;
     private SpinButton        offset_spin;
     private SpinButton        max_size_spin;
+    private SpinButton        panel_spin;
     private CheckButton       expand_check;
 
     public PrefDialog (DockbarXPlugin plugin) {
@@ -57,6 +59,8 @@ class PrefDialog : Dialog {
         color_radio = new RadioButton.with_label(null, "Solid color");
         image_radio = new RadioButton.with_label_from_widget(
          color_radio, "Background image");
+        blend_radio = new RadioButton.with_label_from_widget(
+         image_radio, "Blend with panel");
         color_button = new ColorButton();
         alpha_scale = new HScale.with_range(0, 100, 1);
         alpha_scale.value_pos = PositionType.RIGHT;
@@ -64,6 +68,7 @@ class PrefDialog : Dialog {
          FileChooserAction.OPEN);
         offset_spin = new SpinButton.with_range(-4096, 4096, 1);
         max_size_spin = new SpinButton.with_range(0, 4096, 1);
+        panel_spin = new SpinButton.with_range(0, 99, 1);
         expand_check = new CheckButton.with_label("Expand");
 
         // Bottom/Top change to Left/Right if the panel's vertical.
@@ -82,6 +87,8 @@ class PrefDialog : Dialog {
         color_frame.label_widget = color_radio;
         var image_frame = new Frame(null);
         image_frame.label_widget = image_radio;
+        var blend_frame = new Frame(null);
+        blend_frame.label_widget = blend_radio;
 
         // Assemble the orientation frame.
         var orient_box = new HBox(false, 8);
@@ -114,7 +121,14 @@ class PrefDialog : Dialog {
         image_table.attach(offset_spin, 1, 2, 1, 2, AttachOptions.EXPAND |
          AttachOptions.FILL, 0, 0, 0);
         image_frame.add(image_table);
-
+        
+        // Assemble the blend frame.
+        var panel_box = new HBox(false, 2);
+        panel_box.pack_start(new Label("Panel # to blend:"));
+        panel_box.pack_start(panel_spin);
+        blend_frame.add(panel_box);
+        
+        // Asseemble the size box.
         var size_box = new HBox(false, 2);
         size_box.pack_start(new Label("Max size:"));
         size_box.pack_start(max_size_spin);
@@ -124,6 +138,7 @@ class PrefDialog : Dialog {
         if (!plugin.free_orient) {
             content.pack_start(orient_frame);
         }
+        content.pack_start(blend_frame);
         content.pack_start(color_frame);
         content.pack_start(image_frame);
         content.pack_start(size_box);
@@ -138,10 +153,12 @@ class PrefDialog : Dialog {
         top_radio.active = plugin.orient == "top" || plugin.orient == "right";
         color_radio.active = plugin.bgmode == 0;
         image_radio.active = plugin.bgmode == 1;
+        blend_radio.active = plugin.bgmode == 2;
         color_button.color = plugin.color;
         alpha_scale.set_value(plugin.alpha);
         image_button.set_filename(plugin.image);
         offset_spin.value = plugin.offset;
+        panel_spin.value = plugin.blend_panel;
         expand_check.active = plugin.expand;
 
         // Signals, yo.
@@ -160,10 +177,13 @@ class PrefDialog : Dialog {
             }
         });
         color_radio.toggled.connect(() => {
-            plugin.bgmode = color_radio.active ? 0 : 1;
+            plugin.bgmode = color_radio.active ? 0 : blend_radio.active ? 2 : 1;
         });
         image_radio.toggled.connect(() => {
-            plugin.bgmode = image_radio.active ? 1 : 0;
+            plugin.bgmode = image_radio.active ? 1 : blend_radio.active ? 2 : 0;
+        });
+        blend_radio.toggled.connect(() => {
+            plugin.bgmode = blend_radio.active ? 2 : color_radio.active ? 0 : 1;
         });
         color_button.color_set.connect(() => {
             plugin.color = color_button.color;
@@ -179,6 +199,9 @@ class PrefDialog : Dialog {
         });
         max_size_spin.value_changed.connect(() => {
             plugin.max_size = (int)max_size_spin.value;
+        });
+        panel_spin.value_changed.connect(() => {
+            plugin.blend_panel = (int)panel_spin.value;
         });
         expand_check.toggled.connect(() => {
             plugin.expand = expand_check.active;

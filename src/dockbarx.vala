@@ -41,6 +41,7 @@ public class DockbarXPlugin : PanelPlugin {
     public  string       image       { get; set; }
     public  int          offset      { get; set; }
     public  int          max_size    { get; set; }
+    public  int          blend_panel { get; set; }
     public  bool         config      { get; set; }
     public  string       orient      { get; set; }
     public  bool         free_orient { get; set; default = false; }
@@ -59,12 +60,13 @@ public class DockbarXPlugin : PanelPlugin {
             keyfile.load_from_data("""
                 [Xfce4DockbarX]
                 config=false
-                mode=0
+                mode=2
                 color=#3c3c3c
                 alpha=100
                 image=
                 offset=0
                 max_size=0
+                blend_panel=0
                 orient=bottom
                 expand=false
             """, -1, KeyFileFlags.NONE);
@@ -84,6 +86,7 @@ public class DockbarXPlugin : PanelPlugin {
             image = keyfile.get_string(section, "image");
             offset = keyfile.get_integer(section, "offset");
             max_size = keyfile.get_integer(section, "max_size");
+            blend_panel = keyfile.get_integer(section, "blend_panel");
             orient = keyfile.get_string(section, "orient");
             expand = keyfile.get_boolean(section, "expand");
         } catch {
@@ -162,6 +165,7 @@ public class DockbarXPlugin : PanelPlugin {
             keyfile.set_string(section, "image", image);
             keyfile.set_integer(section, "offset", offset);
             keyfile.set_integer(section, "max_size", max_size);
+            keyfile.set_integer(section, "blend_panel", blend_panel);
             keyfile.set_string(section, "orient", orient);
             keyfile.set_boolean(section, "expand", expand);
             FileUtils.set_contents(save_location(true), keyfile.to_data(null));

@@ -37,11 +37,48 @@ pygtk.require("2.0")
 import gtk
 import cairo
 import gobject
+import dbus
 
 import dockbarx.dockbar as db
 from dockbarx.common import Globals
 from ConfigParser import SafeConfigParser
 
+
+# Create a cairo pattern from given color.
+def make_color_pattern (size, red, green, blue, alpha):
+    if gtk.gdk.screen_get_default().get_rgba_colormap() is None: alpha = 100
+    return cairo.SolidPattern(red / size, green / size, blue / size,
+     alpha / 100.0)
+
+# Create a cairo pattern from given image.
+def make_image_pattern (image, offset, orient):
+    try:
+        surface = cairo.ImageSurface.create_from_png(image)
+        pattern = cairo.SurfacePattern(surface)
+        pattern.set_extend(cairo.EXTEND_REPEAT)
+    except:
+        traceback.print_exc()
+        sys.exit("Couldn't load png image.")
+    try:
+        tx = offset if orient in ("up", "down") else 0
+        ty = offset if orient in ("left", "right") else 0
+        matrix = cairo.Matrix(x0=tx, xy=ty)
+        pattern.set_matrix(matrix)
+    except:
+        traceback.print_exc()
+        sys.exit("Image offset must be an integer.")
+    return pattern
+
+# Create a pattern from dbus.
+def pattern_from_dbus (iface, prop, offset, orient):
+    style = iface.GetProperty("xfce4-panel", prop + "background-style")
+    if style == 2:
+        image = iface.GetProperty("xfce4-panel", prop + "background-image")
+        return make_image_pattern(image, offset, orient)
+    else:
+        color = iface.GetProperty("xfce4-panel", prop + "background-color")
+        alpha = iface.GetProperty("xfce4-panel", prop + "background-alpha")
+        return make_color_pattern(65535.0, color[0], color[1], color[2], alpha)
 
 # A very minimal plug application that loads DockbarX
 # so that the embed plugin can, well, embed it.
@@ -50,12 +87,15 @@ class DockBarXFCEPlug(gtk.Plug):
     __gsignals__ = {"expose-event": "override"}
 
     # Constructor!
-    def __init__ (self, socket, cairo_pattern, orient, max_size, expand):
+    def __init__ (self, socket, cairo_pattern, offset, orient, max_size, expand,
+     bus=None, iface=None, xfconf_prop=None):
         # Set up the window.
         gtk.Plug.__init__(self, socket)
         self.pattern = cairo_pattern
         self.max_size = max_size
         self.expand = expand
+        self.offset = offset
+        self.orient = orient
         self.set_name("Xfce4DockBarXPlug")
         self.connect("destroy", self.destroy)
         self.set_app_paintable(True)
@@ -72,8 +112,23 @@ class DockBarXFCEPlug(gtk.Plug):
         self.add(self.dockbar.get_container())
         self.dockbar.set_max_size(self.max_size)
         self.show_all()
-
-    def readd_container(self, container):
+        
+        # Set up dbus integration.
+        if bus:
+            self.bus = bus
+            self.iface = iface
+            self.prop = prop
+            bus.add_signal_receiver(self.xfconf_changed, "PropertyChanged",
+             "org.xfce.Xfconf", "org.xfce.Xfconf", "/org/xfce/Xfconf")
+    
+    def xfconf_changed (self, channel, prop, val):
+        if channel != "xfce4-panel": return
+        if self.prop not in prop: return
+        self.pattern = pattern_from_dbus(self.iface, self.prop, self.offset,
+         self.orient)
+        self.queue_draw()
+    
+    def readd_container (self, container):
         # Dockbar calls back with this function when it is reloaded
         # since the old container has been destroyed in the reload
         # and needs to be added again.
@@ -198,34 +253,27 @@ if mode == 0:
         if len(c) == 12:
             split = (c[0:4], c[4:8], c[8:12])
             size = 65535.0
-        cl = [(int(x, 16) / 65535.0) for x in split]
-        if gtk.gdk.screen_get_default().get_rgba_colormap() is None: alpha = 100
-        cairo_pattern = cairo.SolidPattern(cl[0], cl[1], cl[2], alpha / 100.0)
+        cl = [int(x, 16) for x in split]
+        cairo_pattern = make_color_pattern(size, cl[0], cl[1], cl[2], alpha);
     except:
         traceback.print_exc()
         sys.exit("Color must be specified in hex: red, green, blue.")
 
 # Image parameters.
 elif mode == 1:
-    try:
-        image = keyfile.get(section, "image")
-        surface = cairo.ImageSurface.create_from_png(image)
-        cairo_pattern = cairo.SurfacePattern(surface)
-        cairo_pattern.set_extend(cairo.EXTEND_REPEAT)
-    except:
-        traceback.print_exc()
-        sys.exit("Couldn't load png image.")
-    try:
-        offset = keyfile.getint(section, "offset")
-        tx = offset if orient in ("up", "down") else 0
-        ty = offset if orient in ("left", "right") else 0
-        matrix = cairo.Matrix(x0=tx, xy=ty)
-        cairo_pattern.set_matrix(matrix)
-    except:
-        traceback.print_exc()
-        sys.exit("Image offset must be an integer.")
+    cairo_pattern = make_image_pattern(keyfile.get(section, "image"),
+     keyfile.getint(section, "offset"), orient)
+
+# Fancy new panel blend mode which uses DBus!
+elif mode == 2:
+    bus = dbus.SessionBus()
+    xfconf = dbus.Interface(bus.get_object(
+     "org.xfce.Xfconf", "/org/xfce/Xfconf"), "org.xfce.Xfconf")
+    prop = "/panels/panel-{}/".format(keyfile.getint(section, "blend_panel"));
+    cairo_pattern = pattern_from_dbus(xfconf, prop, offset, orient)
+
 else:
-    sys.exit("Mode must be 0 for color or 1 for image.")
+    sys.exit("Mode must be 0 for color, 1 for image, or 2 for blend.")
 
 # Size parameters.
 try:
@@ -241,5 +289,6 @@ except:
     sys.exit("Expand must be true or false.")
 
 # Anyways, time to start DBX!
-dockbarxplug = DockBarXFCEPlug(socket, cairo_pattern, orient, max_size, expand)
+dockbarxplug = DockBarXFCEPlug(socket, cairo_pattern, offset, orient, max_size,
+ expand, bus, xfconf, prop)
 gtk.main()
