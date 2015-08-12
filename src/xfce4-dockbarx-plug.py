@@ -158,6 +158,9 @@ class DockBarXFCEPlug(gtk.Plug):
 # Init the variables to default values.
 socket = 0
 config = ""
+bus = None
+xfconf = None
+prop = None
 
 # Then check the arguments for them.
 if "-s" in sys.argv:
