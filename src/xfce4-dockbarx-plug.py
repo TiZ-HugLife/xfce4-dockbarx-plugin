@@ -158,6 +158,7 @@ class DockBarXFCEPlug(gtk.Plug):
 # Init the variables to default values.
 socket = 0
 config = ""
+plugin_id = -1
 bus = None
 xfconf = None
 prop = None
@@ -165,16 +166,16 @@ prop = None
 # Then check the arguments for them.
 if "-s" in sys.argv:
     i = sys.argv.index("-s") + 1
-    try:
-        socket = int(sys.argv[i])
-    except:
-        raise
+    try: socket = int(sys.argv[i])
+    except: raise
 if "-c" in sys.argv:
     i = sys.argv.index("-c") + 1
-    try:
-        config = sys.argv[i]
-    except:
-        raise
+    try: config = sys.argv[i]
+    except: raise
+if "-i" in sys.argv:
+    i = sys.argv.index("-i") + 1
+    try: plugin_id = sys.argv[i]
+    except: raise
 
 # If you try to run this by itself, you're bad and you should feel bad.
 if socket == 0:
@@ -183,6 +184,10 @@ if socket == 0:
 # You also need a configuration file, you bad program user.
 if config == "":
     sys.exit("Forgetting something? You need a configuration file.")
+
+# We don't actually *need* this unless we're running DBX, but...
+if plugin_id == -1:
+    sys.exit("We need to know the plugin id of the DBX socket.")
 
 # First, load the configuration file.
 # Default config.
@@ -272,7 +277,9 @@ elif mode == 2:
     bus = dbus.SessionBus()
     xfconf = dbus.Interface(bus.get_object(
      "org.xfce.Xfconf", "/org/xfce/Xfconf"), "org.xfce.Xfconf")
-    prop = "/panels/panel-{}/".format(keyfile.getint(section, "blend_panel"));
+    prop = [k for (k, v) in
+     xfconf.GetAllProperties("xfce4-panel", "/panels").iteritems()
+     if "plugin-ids" in k and plugin_id in v][0][:-10]
     cairo_pattern = pattern_from_dbus(xfconf, prop, offset, orient)
 
 else:

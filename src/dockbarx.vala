@@ -41,7 +41,6 @@ public class DockbarXPlugin : PanelPlugin {
     public  string       image       { get; set; }
     public  int          offset      { get; set; }
     public  int          max_size    { get; set; }
-    public  int          blend_panel { get; set; }
     public  bool         config      { get; set; }
     public  string       orient      { get; set; }
     public  bool         free_orient { get; set; default = false; }
@@ -66,7 +65,6 @@ public class DockbarXPlugin : PanelPlugin {
                 image=
                 offset=0
                 max_size=0
-                blend_panel=0
                 orient=bottom
                 expand=false
             """, -1, KeyFileFlags.NONE);
@@ -86,7 +84,6 @@ public class DockbarXPlugin : PanelPlugin {
             image = keyfile.get_string(section, "image");
             offset = keyfile.get_integer(section, "offset");
             max_size = keyfile.get_integer(section, "max_size");
-            blend_panel = keyfile.get_integer(section, "blend_panel");
             orient = keyfile.get_string(section, "orient");
             expand = keyfile.get_boolean(section, "expand");
         } catch {
@@ -141,7 +138,7 @@ public class DockbarXPlugin : PanelPlugin {
             try {
                 Process.spawn_command_line_async("/usr/bin/env python2 " +
                  "/usr/share/xfce4/panel/plugins/xfce4-dockbarx-plug " +
-                 @"-s $socket_id -c $file");
+                 @"-s $socket_id -c $file -i $unique_id");
             } catch {
                 var d = new MessageDialog(null, 0, MessageType.ERROR,
                  ButtonsType.OK, "Failed to start DockbarX plug.");
@@ -165,7 +162,6 @@ public class DockbarXPlugin : PanelPlugin {
             keyfile.set_string(section, "image", image);
             keyfile.set_integer(section, "offset", offset);
             keyfile.set_integer(section, "max_size", max_size);
-            keyfile.set_integer(section, "blend_panel", blend_panel);
             keyfile.set_string(section, "orient", orient);
             keyfile.set_boolean(section, "expand", expand);
             FileUtils.set_contents(save_location(true), keyfile.to_data(null));
