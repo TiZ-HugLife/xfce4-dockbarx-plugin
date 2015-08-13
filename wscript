@@ -22,7 +22,7 @@
 
 # For creating a source archive.
 APPNAME = 'xfce4-dockbarx-plugin'
-VERSION = '0.4'
+VERSION = '0.4.1'
 
 # Required waf stuff.
 top = '.'
