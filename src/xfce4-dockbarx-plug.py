@@ -174,7 +174,7 @@ if "-c" in sys.argv:
     except: raise
 if "-i" in sys.argv:
     i = sys.argv.index("-i") + 1
-    try: plugin_id = sys.argv[i]
+    try: plugin_id = int(sys.argv[i])
     except: raise
 
 # If you try to run this by itself, you're bad and you should feel bad.
