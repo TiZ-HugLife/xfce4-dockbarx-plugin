@@ -126,7 +126,8 @@ public class DockbarXPlugin : PanelPlugin {
         if (!starting_dbx) {
             starting_dbx = true;
             try {
-                Process.spawn_command_line_sync("pkill -f xfce4-dockbarx-plug");
+                Process.spawn_command_line_sync(
+                 "pkill -f 'python.*xfce4-dockbarx-plug'");
             } catch {
                 var d = new MessageDialog(null, 0, MessageType.ERROR,
                  ButtonsType.OK, "Failed to stop DockbarX plug.");
