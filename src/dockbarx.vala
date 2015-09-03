@@ -34,7 +34,7 @@ public class DockbarXPlugin : PanelPlugin {
     // Fields and props.
     private Gtk.Socket   socket;
     private ulong        socket_id;
-    private bool         starting_dbx = false;
+    private bool         starting_dbx = true;
     public  uint8        bgmode      { get; set; }
     public  Gdk.Color    color;  // Can't be a property.
     public  uint8        alpha       { get; set; }
@@ -116,6 +116,7 @@ public class DockbarXPlugin : PanelPlugin {
         save.connect(save_config);
 
         // Start DBX if it's been configured.
+        starting_dbx = false;
         show_all();
         if (config) start_dockbarx();
         else configure_plugin();
