@@ -43,7 +43,6 @@ class PrefDialog : Dialog {
         response.connect((i) => {
             if (i == ResponseType.APPLY) {
                 plugin.config = true;
-                plugin.save_config();
                 plugin.start_dockbarx();
             } else {
                 destroy();
@@ -144,7 +143,7 @@ class PrefDialog : Dialog {
         color_radio.active = plugin.bgmode == 0;
         image_radio.active = plugin.bgmode == 1;
         blend_radio.active = plugin.bgmode == 2;
-        color_button.color = plugin.color;
+        Gdk.Color.parse(plugin.color, out color_button.color)
         alpha_scale.set_value(plugin.alpha);
         image_button.set_filename(plugin.image);
         offset_spin.value = plugin.offset;
@@ -175,7 +174,7 @@ class PrefDialog : Dialog {
             plugin.bgmode = blend_radio.active ? 2 : color_radio.active ? 0 : 1;
         });
         color_button.color_set.connect(() => {
-            plugin.color = color_button.color;
+            plugin.color = color_button.color.to_string();
         });
         alpha_scale.value_changed.connect(() => {
             plugin.alpha = (uint8)alpha_scale.get_value();

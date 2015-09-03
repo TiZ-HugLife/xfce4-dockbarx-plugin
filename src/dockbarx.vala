@@ -19,6 +19,7 @@
 // THE SOFTWARE.
 
 using Xfce;
+using Xfconf;
 using Gtk;
 
 
@@ -36,59 +37,56 @@ public class DockbarXPlugin : PanelPlugin {
     private ulong        socket_id;
     private bool         starting_dbx = true;
     public  uint8        bgmode      { get; set; }
-    public  Gdk.Color    color;  // Can't be a property.
+    public  string       color       { get; set; }
     public  uint8        alpha       { get; set; }
     public  string       image       { get; set; }
     public  int          offset      { get; set; }
     public  int          max_size    { get; set; }
     public  bool         config      { get; set; }
     public  string       orient      { get; set; }
-    public  bool         free_orient { get; set; default = false; }
-    private const string section = "Xfce4DockbarX";
+    public  bool         free_orient { get; set; }
+    public  Channel      xfc;
+    public  string       prop_panel;
+    public  string       prop_dbx;
 
     // Constructor!
     public override void @construct () {
         // This program does one thing, and one thing only:
         // Embeds the already-made DockBarX using the helper
         // application, dockbarx-xfce-plug.
-
-        // Load settings from the rc file.
-        KeyFile keyfile = new KeyFile();
-        try {
-            // Load the default config.
-            keyfile.load_from_data("""
-                [Xfce4DockbarX]
-                config=false
-                mode=2
-                color=#3c3c3c
-                alpha=100
-                image=
-                offset=0
-                max_size=0
-                orient=bottom
-                expand=false
-            """, -1, KeyFileFlags.NONE);
-            // Load the keyfile.
-        } catch {
-            stderr.printf("The default config got messed up somehow...");
+        
+        xfc = Channel("xfce4-panel");
+        prop_dbx = "/plugins/plugin-$unique_id";
+        var props = xfc.get_properties("/panels");
+        foreach (string p in props) {
+            if (p.contains("plugin-ids") &&
+             unique_id in xfc.get_string_list(p)) {
+                prop_panel = p.slice(0, -11);
+                break;
+            }
         }
-        try {
-            keyfile.load_from_file(lookup_rc_file(), KeyFileFlags.NONE);
-        } catch { }
-        try {
-            config = keyfile.get_boolean(section, "config");
-            bgmode = (uint8)keyfile.get_integer(section, "mode");
-            Gdk.Color.parse(keyfile.get_string(section, "color"),
-             out color);
-            alpha = (uint8)keyfile.get_integer(section, "alpha");
-            image = keyfile.get_string(section, "image");
-            offset = keyfile.get_integer(section, "offset");
-            max_size = keyfile.get_integer(section, "max_size");
-            orient = keyfile.get_string(section, "orient");
-            expand = keyfile.get_boolean(section, "expand");
-        } catch {
-            stderr.printf("Couldn't load configuration.\n");
-        }
+        
+        // Load initial settings.
+        config = xfc.get_bool(prop_dbx + "config", false);
+        bgmode = (uint8)xfc.get_int(prop_dbx + "bgmode", 0);
+        color = xfc.get_string(prop_dbx + "color", "#000000");
+        alpha = (uint8)xfc.get_int(prop_dbx + "alpha", 100);
+        image = xfc.get_string(prop_dbx + "image", "");
+        offset = xfc.get_int(prop_dbx + "offset", 0);
+        max_size = xfc.get_int(prop_dbx + "max_size", -1);
+        orient = xfc.get_string(prop_dbx + "orient", "bottom");
+        expand = xfc.get_bool(prop_dbx + "expand", false);
+        
+        // Bind settings to xfconf.
+        Property.bind(xfc, prop_dbx + "config", this, "config");
+        Property.bind(xfc, prop_dbx + "mode", this, "bgmode");
+        Property.bind(xfc, prop_dbx + "color", this, "color");
+        Property.bind(xfc, prop_dbx + "alpha", this, "alpha");
+        Property.bind(xfc, prop_dbx + "image", this, "image");
+        Property.bind(xfc, prop_dbx + "offset", this, "offset");
+        Property.bind(xfc, prop_dbx + "max_size", this, "max_size");
+        Property.bind(xfc, prop_dbx + "orient", this, "orient");
+        Property.bind(xfc, prop_dbx + "expand", this, "expand");
 
         // Create the socket.
         socket = new Gtk.Socket();
@@ -112,8 +110,6 @@ public class DockbarXPlugin : PanelPlugin {
         });
         screen_position_changed.connect(determine_orientation);
         socket.plug_removed.connect(start_dockbarx);
-        notify.connect(save_config);
-        save.connect(save_config);
 
         // Start DBX if it's been configured.
         starting_dbx = false;
@@ -135,12 +131,11 @@ public class DockbarXPlugin : PanelPlugin {
                 d.run();
                 d.destroy();
             }
-            var file = lookup_rc_file();
             // Now there should be basically no reason for this to fail.
             try {
                 Process.spawn_command_line_async("/usr/bin/env python2 " +
                  "/usr/share/xfce4/panel/plugins/xfce4-dockbarx-plug " +
-                 @"-s $socket_id -c $file -i $unique_id");
+                 @"-s $socket_id -i $unique_id");
             } catch {
                 var d = new MessageDialog(null, 0, MessageType.ERROR,
                  ButtonsType.OK, "Failed to start DockbarX plug.");
@@ -150,26 +145,6 @@ public class DockbarXPlugin : PanelPlugin {
             starting_dbx = false;
         }
         return true;
-    }
-
-    // Updates config file.
-    public void save_config () {
-        // Save the properties to the keyfile.
-        KeyFile keyfile = new KeyFile();
-        try {
-            keyfile.set_boolean(section, "config", config);
-            keyfile.set_integer(section, "mode", bgmode);
-            keyfile.set_string(section, "color", color.to_string());
-            keyfile.set_integer(section, "alpha", alpha);
-            keyfile.set_string(section, "image", image);
-            keyfile.set_integer(section, "offset", offset);
-            keyfile.set_integer(section, "max_size", max_size);
-            keyfile.set_string(section, "orient", orient);
-            keyfile.set_boolean(section, "expand", expand);
-            FileUtils.set_contents(save_location(true), keyfile.to_data(null));
-        } catch {
-            stderr.printf("Couldn't save configuration.\n");
-        }
     }
 
     // Determines DBX orientation.
@@ -214,7 +189,6 @@ public class DockbarXPlugin : PanelPlugin {
         }
 
         // Restart DBX if it's already started.
-        save_config();
         if (socket.get_plug_window() != null) {
             start_dockbarx();
         }
