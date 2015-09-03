@@ -67,6 +67,16 @@ class DockBarXFCEPlug(gtk.Plug):
         
         # Set up the window.
         gtk.Plug.__init__(self, int(options.socket))
+        self.connect("destroy", self.destroy)
+        self.set_app_paintable(True)
+        gtk_screen = gtk.gdk.screen_get_default()
+        colormap = gtk_screen.get_rgba_colormap()
+        if colormap is None: colormap = gtk_screen.get_rgb_colormap()
+        self.set_colormap(colormap)
+        
+        # This should cause the widget to get themed like a panel.
+        self.set_name("Xfce4PanelDockBarX")
+        self.show()
 
         # First, load the configuration file.
         # Default config.
@@ -151,16 +161,6 @@ expand=false
             traceback.print_exc()
             sys.exit("Expand must be true or false.")
         
-        # This should cause the widget to get themed like a panel.
-        self.set_name("Xfce4PanelDockBarX")
-        
-        self.connect("destroy", self.destroy)
-        self.set_app_paintable(True)
-        gtk_screen = gtk.gdk.screen_get_default()
-        colormap = gtk_screen.get_rgba_colormap()
-        if colormap is None: colormap = gtk_screen.get_rgb_colormap()
-        self.set_colormap(colormap)
-
         # Load and insert DBX.
         self.dockbar = db.DockBar(self)
         self.dockbar.set_orient(self.orient)
