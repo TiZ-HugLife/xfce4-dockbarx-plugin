@@ -130,10 +130,7 @@ class DockBarXFCEPlug(gtk.Plug):
     def xfconf_get (self, prop_base, prop, default=None):
         if self.xfconf.PropertyExists("xfce4-panel", prop_base + prop):
             retval = self.xfconf.GetProperty("xfce4-panel", prop_base + prop)
-            if type(retval) is type(default) or default is None:
-                return retval
-            else:
-                return default
+            return retval
         else:
             return default
     def xfconf_get_dbx (self, prop, default=None):

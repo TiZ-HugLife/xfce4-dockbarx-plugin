@@ -55,7 +55,7 @@ public class DockbarXPlugin : PanelPlugin {
         
         Xfconf.init();
         xfc = new Channel("xfce4-panel");
-        prop = "/plugins/plugin-$unique_id/";
+        prop = @"/plugins/plugin-$unique_id/";
         
         // Load initial settings.
         bgmode = (uint8)xfc.get_int(prop + "bgmode", 2);
@@ -67,7 +67,7 @@ public class DockbarXPlugin : PanelPlugin {
         orient = xfc.get_string(prop + "orient", "bottom");
         expand = xfc.get_bool(prop + "expand", false);
         
-        // Bind settings to xfconf.
+        // Bind properties to xfconf.
         Property.bind(xfc, prop + "mode", typeof(uint8), this, "bgmode");
         Property.bind(xfc, prop + "color", typeof(string), this, "color");
         Property.bind(xfc, prop + "alpha", typeof(uint8), this, "alpha");
