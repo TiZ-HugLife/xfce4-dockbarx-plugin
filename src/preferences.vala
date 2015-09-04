@@ -41,11 +41,7 @@ class PrefDialog : Dialog {
         this.plugin = plugin;
         title = "DockbarX Preferences";
         response.connect((i) => {
-            if (i == ResponseType.APPLY) {
-                plugin.start_dockbarx();
-            } else {
-                destroy();
-            }
+            destroy();
         });
 
         // Make some actual wiggits.
@@ -130,10 +126,7 @@ class PrefDialog : Dialog {
         content.pack_start(color_frame);
         content.pack_start(image_frame);
         content.pack_start(size_box);
-
-        // Add some buttons.
         add_button(Stock.APPLY, ResponseType.APPLY);
-        add_button(Stock.CLOSE, ResponseType.CLOSE);
 
         // Set initial values.
         bottom_radio.active = plugin.orient == "bottom" ||
@@ -178,7 +171,7 @@ class PrefDialog : Dialog {
             plugin.color = color_button.color.to_string();
         });
         alpha_scale.value_changed.connect(() => {
-            plugin.alpha = (uint8)alpha_scale.get_value();
+            plugin.alpha = (int)alpha_scale.get_value();
         });
         image_button.file_set.connect(() => {
             plugin.image = image_button.get_filename();

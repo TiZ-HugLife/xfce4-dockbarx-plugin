@@ -36,9 +36,9 @@ public class DockbarXPlugin : PanelPlugin {
     private Gtk.Socket   socket;
     private ulong        socket_id;
     private bool         starting_dbx = false;
-    public  uint8        bgmode      { get; set; }
+    public  int          bgmode      { get; set; }
     public  string       color       { get; set; }
-    public  uint8        alpha       { get; set; }
+    public  int          alpha       { get; set; }
     public  string       image       { get; set; }
     public  int          offset      { get; set; }
     public  int          max_size    { get; set; }
@@ -58,9 +58,9 @@ public class DockbarXPlugin : PanelPlugin {
         prop = @"/plugins/plugin-$unique_id/";
         
         // Load initial settings.
-        bgmode = (uint8)xfc.get_int(prop + "bgmode", 2);
+        bgmode = xfc.get_int(prop + "bgmode", 2);
         color = xfc.get_string(prop + "color", "#000000");
-        alpha = (uint8)xfc.get_int(prop + "alpha", 100);
+        alpha = xfc.get_int(prop + "alpha", 100);
         image = xfc.get_string(prop + "image", "");
         offset = xfc.get_int(prop + "offset", 0);
         max_size = xfc.get_int(prop + "max_size", 0);
@@ -68,9 +68,9 @@ public class DockbarXPlugin : PanelPlugin {
         expand = xfc.get_bool(prop + "expand", false);
         
         // Bind properties to xfconf.
-        Property.bind(xfc, prop + "mode", typeof(uint8), this, "bgmode");
+        Property.bind(xfc, prop + "mode", typeof(int), this, "bgmode");
         Property.bind(xfc, prop + "color", typeof(string), this, "color");
-        Property.bind(xfc, prop + "alpha", typeof(uint8), this, "alpha");
+        Property.bind(xfc, prop + "alpha", typeof(int), this, "alpha");
         Property.bind(xfc, prop + "image", typeof(string), this, "image");
         Property.bind(xfc, prop + "offset", typeof(int), this, "offset");
         Property.bind(xfc, prop + "max_size", typeof(int), this, "max_size");

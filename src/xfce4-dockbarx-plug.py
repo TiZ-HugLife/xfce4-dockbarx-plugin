@@ -48,7 +48,7 @@ class DockBarXFCEPlug(gtk.Plug):
         self.xfconf = None
         self.dbx_prop = None
         self.panel_prop = None
-        section = "Xfce4DockbarX"
+        self.mode = None
 
         # Then check the arguments for them.
         parser = OptionParser()
@@ -84,46 +84,18 @@ class DockBarXFCEPlug(gtk.Plug):
         self.panel_prop = [k for (k, v) in
          self.xfconf.GetAllProperties("xfce4-panel", "/panels").iteritems()
          if "plugin-ids" in k and int(options.plugin_id) in v][0][:-10]
+        self.bus.add_signal_receiver(self.xfconf_changed, "PropertyChanged",
+         "org.xfce.Xfconf", "org.xfce.Xfconf", "/org/xfce/Xfconf")
 
-        self.mode = self.xfconf_get_dbx("mode", 2)
-        self.orient = self.xfconf_get_dbx("orient", "down")
-        self.offset = self.xfconf_get_dbx("offset", 0)
-
-        # Let's make sure our parameters are actually valid.
-        if not (self.orient == "bottom" or self.orient == "top" or
-         self.orient == "down" or self.orient == "up" or
-         self.orient == "left" or self.orient == "right"):
-            sys.exit("Orient must be bottom, top, left, or right.")
-
-        # Change it to DBX-specific terminology.
-        if self.orient == "bottom": self.orient = "down"
-        if self.orient == "top": self.orient = "up"
-
-        # Prepare panel background.
-        image = self.xfconf_get_dbx("image", "")
-        if self.mode == 1 and os.path.isfile(image):
-            self.image_pattern(image)
-        elif self.mode == 0:
-            alpha = self.xfconf_get_dbx("alpha", 100)
-            color = gtk.gdk.color_parse(self.xfconf_get_dbx("color", "#000"))
-            self.color_pattern(color, alpha);
-        else:
-            self.pattern_from_dbus()
-            self.bus.add_signal_receiver(self.xfconf_changed, "PropertyChanged",
-             "org.xfce.Xfconf", "org.xfce.Xfconf", "/org/xfce/Xfconf")
-
-        # Size parameters.
-        self.max_size = self.xfconf_get_dbx("max_size", 0)
-        if self.max_size < 1: self.max_size = 4096
-        self.expand = self.xfconf_get_dbx("expand", False)
+        self.config_bg()
         
         # Load and insert DBX.
         self.dockbar = db.DockBar(self)
-        self.dockbar.set_orient(self.orient)
+        self.dockbar.set_orient(self.get_orient())
         self.dockbar.set_expose_on_clear(True)
         self.dockbar.load()
         self.add(self.dockbar.get_container())
-        self.dockbar.set_max_size(self.max_size)
+        self.dockbar.set_max_size(self.get_size())
         self.show_all()
     
     # Convenience methods.
@@ -138,6 +110,42 @@ class DockBarXFCEPlug(gtk.Plug):
     def xfconf_get_panel (self, prop, default=None):
         return self.xfconf_get(self.panel_prop, prop, default)
     
+    # Signal fired when xfconf changes.
+    def xfconf_changed (self, channel, prop, val):
+        if channel != "xfce4-panel": return
+        if self.panel_prop in prop and self.mode == 2:
+            self.pattern_from_dbus()
+        elif self.dbx_prop in prop:
+            if "orient" in prop:  self.dockbar.set_orient(self.get_orient())
+            elif "mode" in prop:  self.config_bg()
+            elif "max_size" in prop or "expand" in prop:
+                self.dockbar.set_max_size(self.get_size())
+            elif self.mode == 0 and ("color" in prop or "alpha" in prop):
+                self.color_pattern(gtk.gdk.color_parse(self.xfconf_get_dbx(
+                 "color", "#000")), self.xfconf_get_dbx("alpha", 100))
+            elif self.mode == 1 and ("image" in prop or "offset" in prop):
+                self.image_pattern(self.xfconf_get_dbx("image", ""))
+            else:
+                self.pattern_from_dbus()
+        self.queue_draw()
+    
+    # Signal fired when the gtk theme changes.
+    def theme_changed (self, obj, prop):
+        if self.mode == 2:
+            self.pattern_from_dbus()
+            self.queue_draw()
+    
+    # Configure panel background.
+    def config_bg (self):
+        self.mode = self.xfconf_get_dbx("mode", 2)
+        if self.mode == 1:
+            self.image_pattern(self.xfconf_get_dbx("image", ""))
+        elif self.mode == 0:
+            self.color_pattern(gtk.gdk.color_parse(self.xfconf_get_dbx(
+             "color", "#000")), self.xfconf_get_dbx("alpha", 100))
+        else:
+            self.pattern_from_dbus()
+    
     # Create a cairo pattern from given color.
     def color_pattern (self, color, alpha):
         if gtk.gdk.screen_get_default().get_rgba_colormap() is None: alpha = 100
@@ -146,52 +154,62 @@ class DockBarXFCEPlug(gtk.Plug):
 
     # Create a cairo pattern from given image.
     def image_pattern (self, image):
+        self.offset = self.xfconf_get_dbx("offset", 0)
         try:
             surface = cairo.ImageSurface.create_from_png(image)
             self.pattern = cairo.SurfacePattern(surface)
             self.pattern.set_extend(cairo.EXTEND_REPEAT)
-        except:
-            traceback.print_exc()
-            sys.exit("Couldn't load png image.")
-        try:
             tx = self.offset if self.orient in ("up", "down") else 0
             ty = self.offset if self.orient in ("left", "right") else 0
             matrix = cairo.Matrix(x0=tx, xy=ty)
             self.pattern.set_matrix(matrix)
         except:
             traceback.print_exc()
-            sys.exit("Image offset must be an integer.")
+            print "Failed to load image."
+            self.pattern_from_dbus()
+            return
     
     # Create a pattern from dbus.
     def pattern_from_dbus (self):
-        style = self.xfconf_get_panel("background-style", 0)
+        bgstyle = self.xfconf_get_panel("background-style", 0)
         image = self.xfconf_get_panel("background-image", "")
-        if style == 2 and os.path.isfile(image):
-            image = self.xfconf_get_panel("background-image", "")
+        alpha = self.xfconf_get_panel("background-alpha", 100)
+        if bgstyle == 2 and os.path.isfile(image):
             self.image_pattern(image)
-        elif style == 1:
+        elif bgstyle == 1:
             col = self.xfconf_get_panel("background-color", [0, 0, 0, 0])
-            alpha = self.xfconf_get_panel("background-alpha", 100)
             self.color_pattern(gtk.gdk.Color(col[0], col[1], col[2]), alpha)
         else:
             style = self.get_style()
-            alpha = self.xfconf_get_panel("background-alpha")
             self.color_pattern(style.bg[gtk.STATE_NORMAL], alpha)
     
-    def xfconf_changed (self, channel, prop, val):
-        if channel != "xfce4-panel": return
-        if self.panel_prop not in prop: return
-        self.pattern_from_dbus()
-        self.queue_draw()
+    # Returns an orientation to DBX.
+    def get_orient (self):
+        self.orient = self.xfconf_get_dbx("orient", "down")
+        
+        # Let's make sure our parameters are actually valid.
+        if not (self.orient == "bottom" or self.orient == "top" or
+         self.orient == "down" or self.orient == "up" or
+         self.orient == "left" or self.orient == "right"):
+            self.orient = "down"
+
+        # Change it to DBX-specific terminology.
+        if self.orient == "bottom": self.orient = "down"
+        if self.orient == "top": self.orient = "up"
+        
+        return self.orient
     
-    def theme_changed (self, obj, prop):
-        self.pattern_from_dbus()
-        self.queue_draw()
+    # Sets expand and returns max_size to DBX.
+    def get_size (self):
+        max_size = self.xfconf_get_dbx("max_size", 0)
+        if max_size < 1: max_size = 4096
+        self.expand = self.xfconf_get_dbx("expand", False)
+        return max_size
     
+    # Dockbar calls back with this function when it is reloaded
+    # since the old container has been destroyed in the reload
+    # and needs to be added again.
     def readd_container (self, container):
-        # Dockbar calls back with this function when it is reloaded
-        # since the old container has been destroyed in the reload
-        # and needs to be added again.
         self.add(container)
         self.dockbar.set_max_size(self.max_size)
         container.show_all()
@@ -215,7 +233,7 @@ class DockBarXFCEPlug(gtk.Plug):
     def destroy (self, widget, data=None):
         gtk.main_quit()
 
-# Start DBX.
+
 if __name__ == '__main__':
     # Wait for just one second, make sure config files and the like get settled.
     import time; time.sleep(1)
