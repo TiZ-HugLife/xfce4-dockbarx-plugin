@@ -32,7 +32,6 @@ import cairo
 import dbus
 
 import dockbarx.dockbar as db
-from ConfigParser import SafeConfigParser
 from optparse import OptionParser
 
 
@@ -47,21 +46,19 @@ class DockBarXFCEPlug(gtk.Plug):
         # Init the variables to default values.
         self.bus = None
         self.xfconf = None
-        self.prop = None
+        self.dbx_prop = None
+        self.panel_prop = None
         section = "Xfce4DockbarX"
 
         # Then check the arguments for them.
         parser = OptionParser()
         parser.add_option("-s", "--socket", default = 0, help = "Socket ID")
-        parser.add_option("-c", "--config", default = "", help = "Config file")
         parser.add_option("-i", "--plugin_id", default = -1, help = "Plugin ID")
         (options, args) = parser.parse_args()
 
         # Sanity checks.
         if options.socket == 0:
             sys.exit("This program needs to be run by the XFCE DBX plugin.")
-        if options.config == "":
-            sys.exit("Forgetting something? You need a configuration file.")
         if options.plugin_id == -1:
             sys.exit("We need to know the plugin id of the DBX socket.")
         
@@ -79,33 +76,18 @@ class DockBarXFCEPlug(gtk.Plug):
         self.set_name("Xfce4PanelDockBarX")
         self.show()
 
-        # First, load the configuration file.
-        # Default config.
-        default_conf = """
-[Xfce4DockbarX]
-config=false
-mode=0
-color=#3c3c3c
-alpha=100
-image=
-offset=0
-max_size=0
-orient=bottom
-expand=false
-"""
+        # Set up DBus.
+        self.bus = dbus.SessionBus()
+        self.xfconf = dbus.Interface(self.bus.get_object(
+         "org.xfce.Xfconf", "/org/xfce/Xfconf"), "org.xfce.Xfconf")
+        self.dbx_prop = "/plugins/plugin-" + options.plugin_id + "/"
+        self.panel_prop = [k for (k, v) in
+         self.xfconf.GetAllProperties("xfce4-panel", "/panels").iteritems()
+         if "plugin-ids" in k and int(options.plugin_id) in v][0][:-10]
 
-        keyfile = SafeConfigParser(allow_no_value=True)
-        try:
-            keyfile.readfp(io.BytesIO(default_conf))
-            keyfile.read(options.config)
-
-            # Read the config.
-            self.mode = keyfile.getint(section, "mode")
-            self.orient = keyfile.get(section, "orient")
-            self.offset = keyfile.getint(section, "offset")
-        except:
-            traceback.print_exc()
-            sys.exit("Couldn't load config.")
+        self.mode = self.xfconf_get_dbx("mode", 2)
+        self.orient = self.xfconf_get_dbx("orient", "down")
+        self.offset = self.xfconf_get_dbx("offset", 0)
 
         # Let's make sure our parameters are actually valid.
         if not (self.orient == "bottom" or self.orient == "top" or
@@ -117,50 +99,23 @@ expand=false
         if self.orient == "bottom": self.orient = "down"
         if self.orient == "top": self.orient = "up"
 
-        # Color parameters.
-        if self.mode == 0:
-            try:
-                alpha = keyfile.getint(section, "alpha")
-            except:
-                sys.exit("Alpha must be 0 for transparent to 100 for opaque.")
-            try:
-                color = gtk.gdk.color_parse(keyfile.get(section, "color"))
-                self.color_pattern(color, alpha);
-            except:
-                traceback.print_exc()
-                sys.exit("Color must be specified in hex: #rrggbb.")
-
-        # Image parameters.
-        elif self.mode == 1:
-            self.image_pattern(keyfile.get(section, "image"))
-
-        # Fancy new panel blend mode which uses DBus!
-        elif self.mode == 2:
-            self.bus = dbus.SessionBus()
-            self.xfconf = dbus.Interface(self.bus.get_object(
-             "org.xfce.Xfconf", "/org/xfce/Xfconf"), "org.xfce.Xfconf")
-            self.prop = [k for (k, v) in
-             self.xfconf.GetAllProperties("xfce4-panel", "/panels").iteritems()
-             if "plugin-ids" in k and int(options.plugin_id) in v][0][:-10]
+        # Prepare panel background.
+        image = self.xfconf_get_dbx("image", "")
+        if self.mode == 1 and os.path.isfile(image):
+            self.image_pattern(image)
+        elif self.mode == 0:
+            alpha = self.xfconf_get_dbx("alpha", 100)
+            color = gtk.gdk.color_parse(self.xfconf_get_dbx("color", "#000"))
+            self.color_pattern(color, alpha);
+        else:
             self.pattern_from_dbus()
             self.bus.add_signal_receiver(self.xfconf_changed, "PropertyChanged",
              "org.xfce.Xfconf", "org.xfce.Xfconf", "/org/xfce/Xfconf")
 
-        else:
-            sys.exit("Mode must be 0 for color, 1 for image, or 2 for blend.")
-
         # Size parameters.
-        try:
-            self.max_size = keyfile.getint(section, "max_size")
-            if self.max_size == 0: self.max_size = 4096
-        except:
-            traceback.print_exc()
-            sys.exit("Max_size must be a positive integer.")
-        try:
-            self.expand = keyfile.getboolean(section, "expand")
-        except:
-            traceback.print_exc()
-            sys.exit("Expand must be true or false.")
+        self.max_size = self.xfconf_get_dbx("max_size", 0)
+        if self.max_size < 1: self.max_size = 4096
+        self.expand = self.xfconf_get_dbx("expand", False)
         
         # Load and insert DBX.
         self.dockbar = db.DockBar(self)
@@ -170,6 +125,21 @@ expand=false
         self.add(self.dockbar.get_container())
         self.dockbar.set_max_size(self.max_size)
         self.show_all()
+    
+    # Convenience methods.
+    def xfconf_get (self, prop_base, prop, default=None):
+        if self.xfconf.PropertyExists("xfce4-panel", prop_base + prop):
+            retval = self.xfconf.GetProperty("xfce4-panel", prop_base + prop)
+            if type(retval) is type(default) or default is None:
+                return retval
+            else:
+                return default
+        else:
+            return default
+    def xfconf_get_dbx (self, prop, default=None):
+        return self.xfconf_get(self.dbx_prop, prop, default)
+    def xfconf_get_panel (self, prop, default=None):
+        return self.xfconf_get(self.panel_prop, prop, default)
     
     # Create a cairo pattern from given color.
     def color_pattern (self, color, alpha):
@@ -195,28 +165,25 @@ expand=false
             traceback.print_exc()
             sys.exit("Image offset must be an integer.")
     
-    # Convenience method.
-    def get_xfconf_panel (self, prop):
-        return self.xfconf.GetProperty("xfce4-panel", self.prop + prop)
-    
     # Create a pattern from dbus.
     def pattern_from_dbus (self):
-        style = self.get_xfconf_panel("background-style")
-        if style == 2:
-            image = self.get_xfconf_panel("background-image")
+        style = self.xfconf_get_panel("background-style", 0)
+        image = self.xfconf_get_panel("background-image", "")
+        if style == 2 and os.path.isfile(image):
+            image = self.xfconf_get_panel("background-image", "")
             self.image_pattern(image)
         elif style == 1:
-            col = self.get_xfconf_panel("background-color")
-            alpha = self.get_xfconf_panel("background-alpha")
+            col = self.xfconf_get_panel("background-color", [0, 0, 0, 0])
+            alpha = self.xfconf_get_panel("background-alpha", 100)
             self.color_pattern(gtk.gdk.Color(col[0], col[1], col[2]), alpha)
         else:
             style = self.get_style()
-            alpha = self.get_xfconf_panel("background-alpha")
+            alpha = self.xfconf_get_panel("background-alpha")
             self.color_pattern(style.bg[gtk.STATE_NORMAL], alpha)
     
     def xfconf_changed (self, channel, prop, val):
         if channel != "xfce4-panel": return
-        if self.prop not in prop: return
+        if self.panel_prop not in prop: return
         self.pattern_from_dbus()
         self.queue_draw()
     
