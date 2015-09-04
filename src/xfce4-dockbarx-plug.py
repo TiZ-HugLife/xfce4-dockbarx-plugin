@@ -68,6 +68,7 @@ class DockBarXFCEPlug(gtk.Plug):
         # Set up the window.
         gtk.Plug.__init__(self, int(options.socket))
         self.connect("destroy", self.destroy)
+        self.get_settings().connect("notify::gtk-theme-name",self.theme_changed)
         self.set_app_paintable(True)
         gtk_screen = gtk.gdk.screen_get_default()
         colormap = gtk_screen.get_rgba_colormap()
@@ -216,6 +217,10 @@ expand=false
     def xfconf_changed (self, channel, prop, val):
         if channel != "xfce4-panel": return
         if self.prop not in prop: return
+        self.pattern_from_dbus()
+        self.queue_draw()
+    
+    def theme_changed (self, obj, prop):
         self.pattern_from_dbus()
         self.queue_draw()
     
