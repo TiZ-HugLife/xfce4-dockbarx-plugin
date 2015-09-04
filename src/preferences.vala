@@ -42,7 +42,6 @@ class PrefDialog : Dialog {
         title = "DockbarX Preferences";
         response.connect((i) => {
             if (i == ResponseType.APPLY) {
-                plugin.config = true;
                 plugin.start_dockbarx();
             } else {
                 destroy();
@@ -143,7 +142,9 @@ class PrefDialog : Dialog {
         color_radio.active = plugin.bgmode == 0;
         image_radio.active = plugin.bgmode == 1;
         blend_radio.active = plugin.bgmode == 2;
-        Gdk.Color.parse(plugin.color, out color_button.color)
+        Gdk.Color color;
+        Gdk.Color.parse(plugin.color, out color);
+        color_button.color = color;
         alpha_scale.set_value(plugin.alpha);
         image_button.set_filename(plugin.image);
         offset_spin.value = plugin.offset;

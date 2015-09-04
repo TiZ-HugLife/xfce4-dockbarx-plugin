@@ -42,7 +42,6 @@ public class DockbarXPlugin : PanelPlugin {
     public  string       image       { get; set; }
     public  int          offset      { get; set; }
     public  int          max_size    { get; set; }
-    public  bool         config      { get; set; }
     public  string       orient      { get; set; }
     public  bool         free_orient { get; set; }
     public  Channel      xfc;
@@ -53,48 +52,43 @@ public class DockbarXPlugin : PanelPlugin {
     public override void @construct () {
         // This program does one thing, and one thing only:
         // Embeds the already-made DockBarX using the helper
-        // application, dockbarx-xfce-plug.
+        // application, xfce4-dockbarx-plug.
         
-        xfc = Channel("xfce4-panel");
-        prop_dbx = "/plugins/plugin-$unique_id";
+        xfc = new Channel("xfce4-panel");
+        prop_dbx = "/plugins/plugin-$unique_id/";
         var props = xfc.get_properties("/panels");
-        foreach (string p in props) {
+        foreach (string p in props.get_keys()) {
             if (p.contains("plugin-ids") &&
              unique_id in xfc.get_string_list(p)) {
-                prop_panel = p.slice(0, -11);
+                prop_panel = p.slice(0, -10);
                 break;
             }
         }
         
         // Load initial settings.
-        config = xfc.get_bool(prop_dbx + "config", false);
-        bgmode = (uint8)xfc.get_int(prop_dbx + "bgmode", 0);
+        bgmode = (uint8)xfc.get_int(prop_dbx + "bgmode", 2);
         color = xfc.get_string(prop_dbx + "color", "#000000");
         alpha = (uint8)xfc.get_int(prop_dbx + "alpha", 100);
         image = xfc.get_string(prop_dbx + "image", "");
         offset = xfc.get_int(prop_dbx + "offset", 0);
-        max_size = xfc.get_int(prop_dbx + "max_size", -1);
+        max_size = xfc.get_int(prop_dbx + "max_size", 0);
         orient = xfc.get_string(prop_dbx + "orient", "bottom");
         expand = xfc.get_bool(prop_dbx + "expand", false);
         
         // Bind settings to xfconf.
-        Property.bind(xfc, prop_dbx + "config", this, "config");
-        Property.bind(xfc, prop_dbx + "mode", this, "bgmode");
-        Property.bind(xfc, prop_dbx + "color", this, "color");
-        Property.bind(xfc, prop_dbx + "alpha", this, "alpha");
-        Property.bind(xfc, prop_dbx + "image", this, "image");
-        Property.bind(xfc, prop_dbx + "offset", this, "offset");
-        Property.bind(xfc, prop_dbx + "max_size", this, "max_size");
-        Property.bind(xfc, prop_dbx + "orient", this, "orient");
-        Property.bind(xfc, prop_dbx + "expand", this, "expand");
+        Property.bind(xfc, prop_dbx + "mode", typeof(uint8), this, "bgmode");
+        Property.bind(xfc, prop_dbx + "color", typeof(string), this, "color");
+        Property.bind(xfc, prop_dbx + "alpha", typeof(uint8), this, "alpha");
+        Property.bind(xfc, prop_dbx + "image", typeof(string), this, "image");
+        Property.bind(xfc, prop_dbx + "offset", typeof(int), this, "offset");
+        Property.bind(xfc, prop_dbx + "max_size", typeof(int), this, "max_size");
+        Property.bind(xfc, prop_dbx + "orient", typeof(string), this, "orient");
+        Property.bind(xfc, prop_dbx + "expand", typeof(bool), this, "expand");
 
         // Create the socket.
         socket = new Gtk.Socket();
         add(socket);
         socket_id = (ulong)socket.get_id();
-
-        // Determine initial orientation.
-        determine_orientation(screen_position);
 
         // Connect signals.
         size_changed.connect(() => {
@@ -111,11 +105,10 @@ public class DockbarXPlugin : PanelPlugin {
         screen_position_changed.connect(determine_orientation);
         socket.plug_removed.connect(start_dockbarx);
 
-        // Start DBX if it's been configured.
+        // Start DBX.
         starting_dbx = false;
         show_all();
-        if (config) start_dockbarx();
-        else configure_plugin();
+        start_dockbarx();
     }
 
     // Starts DBX when the plugin starts, or when the pref dialog kills it.

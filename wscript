@@ -49,6 +49,8 @@ def configure (ctx):
         uselib_store = 'GTK', mandatory = True, args = args)
     ctx.check_cfg(package = 'libxfce4panel-1.0', atleast_version = '4.8',
         uselib_store = 'XFCE4PANEL', mandatory = True, args = args)
+    ctx.check_cfg(package = 'libxfconf-0', atleast_version = '4.8',
+        uselib_store = 'XFCONF', mandatory = True, args = args)
 
 def build (ctx):
     # Compile the program.
@@ -57,10 +59,10 @@ def build (ctx):
         is_lib       = True,
         vapi_dirs    = 'vapi',
         source       = ctx.path.ant_glob('src/*.vala'),
-        packages     = 'glib-2.0 gtk+-2.0 libxfce4panel-1.0',
+        packages     = 'glib-2.0 gtk+-2.0 libxfce4panel-1.0 libxfconf-0',
         target       = 'dockbarx',
         install_path = '${PREFIX}/lib/xfce4/panel/plugins/',
-        uselib       = 'GLIB GTK XFCE4PANEL')
+        uselib       = 'GLIB GTK XFCE4PANEL XFCONF')
 
     # Install other files.
     ctx(
