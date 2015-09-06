@@ -40,9 +40,7 @@ class PrefDialog : Dialog {
         // Preliminary stuff.
         this.plugin = plugin;
         title = "DockbarX Preferences";
-        response.connect((i) => {
-            destroy();
-        });
+        response.connect((i) => { destroy(); });
 
         // Make some actual wiggits.
         unowned VBox content = get_content_area() as VBox;
@@ -119,9 +117,7 @@ class PrefDialog : Dialog {
         size_box.pack_start(expand_check);
 
         // Put it all together.
-        if (!plugin.free_orient) {
-            content.pack_start(orient_frame);
-        }
+        if (!plugin.free_orient) { content.pack_start(orient_frame); }
         content.pack_start(blend_radio);
         content.pack_start(color_frame);
         content.pack_start(image_frame);

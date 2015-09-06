@@ -83,9 +83,7 @@ public class DockbarXPlugin : PanelPlugin {
         socket_id = (ulong)socket.get_id();
 
         // Connect signals.
-        size_changed.connect(() => {
-            return true;
-        });
+        size_changed.connect(() => { return true; });
         menu_show_configure();
         configure_plugin.connect(() => {
             PrefDialog pd = new PrefDialog(this);
