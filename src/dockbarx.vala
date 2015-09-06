@@ -29,10 +29,7 @@ public Type xfce_panel_module_init (TypeModule module) {
     return typeof (DockbarXPlugin);
 }
 
-// The actual DockbarX plugin class.
 public class DockbarXPlugin : PanelPlugin {
-
-    // Fields and props.
     private Gtk.Socket   socket;
     private ulong        socket_id;
     private bool         starting_dbx = false;
@@ -47,7 +44,6 @@ public class DockbarXPlugin : PanelPlugin {
     public  Channel      xfc;
     public  string       prop;
 
-    // Constructor!
     public override void @construct () {
         // This program does one thing, and one thing only:
         // Embeds the already-made DockBarX using the helper
@@ -56,7 +52,6 @@ public class DockbarXPlugin : PanelPlugin {
         Xfconf.init();
         xfc = new Channel.with_property_base("xfce4-panel",get_property_base());
         
-        // Load initial settings.
         bgmode = xfc.get_int("/bgmode", 2);
         color = xfc.get_string("/color", "#000");
         alpha = xfc.get_int("/alpha", 100);
@@ -66,7 +61,6 @@ public class DockbarXPlugin : PanelPlugin {
         orient = xfc.get_string("/orient", "bottom");
         expand = xfc.get_bool("/expand", false);
         
-        // Bind properties to xfconf.
         Property.bind(xfc, "/mode", typeof(int), this, "bgmode");
         Property.bind(xfc, "/color", typeof(string), this, "color");
         Property.bind(xfc, "/alpha", typeof(int), this, "alpha");
@@ -76,12 +70,10 @@ public class DockbarXPlugin : PanelPlugin {
         Property.bind(xfc, "/orient", typeof(string), this, "orient");
         Property.bind(xfc, "/expand", typeof(bool), this, "expand");
 
-        // Create the socket.
         socket = new Gtk.Socket();
         add(socket);
         socket_id = (ulong)socket.get_id();
-
-        // Connect signals.
+        determine_orientation(screen_position);
         size_changed.connect(() => { return true; });
         menu_show_configure();
         configure_plugin.connect(() => {
@@ -94,13 +86,11 @@ public class DockbarXPlugin : PanelPlugin {
         screen_position_changed.connect(determine_orientation);
         socket.plug_removed.connect(start_dockbarx);
 
-        // Start DBX.
         show_all();
-        determine_orientation(screen_position);
         start_dockbarx();
     }
 
-    // Starts DBX when the plugin starts, or when the pref dialog kills it.
+    // Starts DBX when the plugin starts, or when something kills it.
     public bool start_dockbarx () {
         if (!starting_dbx) {
             starting_dbx = true;
@@ -113,7 +103,7 @@ public class DockbarXPlugin : PanelPlugin {
                 d.run();
                 d.destroy();
             }
-            // Now there should be basically no reason for this to fail.
+            // There should be basically no reason for this to fail.
             try {
                 Process.spawn_command_line_async("/usr/bin/env python2 " +
                  "/usr/share/xfce4/panel/plugins/xfce4-dockbarx-plug " +
@@ -129,7 +119,6 @@ public class DockbarXPlugin : PanelPlugin {
         return true;
     }
 
-    // Determines DBX orientation.
     public void determine_orientation (ScreenPosition pos) {
         switch (pos) {
         case ScreenPosition.S:
@@ -170,7 +159,8 @@ public class DockbarXPlugin : PanelPlugin {
             break;
         }
 
-        // Restart DBX if it's already started.
+        // We have to restart DBX on orientation change because the
+        // plug doesn't handle it properly yet.
         if (socket.get_plug_window() != null) {
             start_dockbarx();
         }

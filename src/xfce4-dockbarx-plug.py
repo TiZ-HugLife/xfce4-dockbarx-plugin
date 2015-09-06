@@ -41,16 +41,13 @@ class DockBarXFCEPlug(gtk.Plug):
     # We want to do our own expose instead of the default.
     __gsignals__ = {"expose-event": "override"}
 
-    # Constructor!
     def __init__ (self):
-        # Init the variables to default values.
         self.bus = None
         self.xfconf = None
         self.dbx_prop = None
         self.panel_prop = None
         self.mode = None
 
-        # Then check the arguments for them.
         parser = OptionParser()
         parser.add_option("-s", "--socket", default = 0, help = "Socket ID")
         parser.add_option("-i", "--plugin_id", default = -1, help = "Plugin ID")
@@ -62,7 +59,6 @@ class DockBarXFCEPlug(gtk.Plug):
         if options.plugin_id == -1:
             sys.exit("We need to know the plugin id of the DBX socket.")
         
-        # Set up the window.
         gtk.Plug.__init__(self, int(options.socket))
         self.connect("destroy", self.destroy)
         self.get_settings().connect("notify::gtk-theme-name",self.theme_changed)
@@ -76,7 +72,6 @@ class DockBarXFCEPlug(gtk.Plug):
         self.set_name("Xfce4PanelDockBarX")
         self.show()
 
-        # Set up DBus.
         self.bus = dbus.SessionBus()
         self.xfconf = dbus.Interface(self.bus.get_object(
          "org.xfce.Xfconf", "/org/xfce/Xfconf"), "org.xfce.Xfconf")
@@ -89,7 +84,6 @@ class DockBarXFCEPlug(gtk.Plug):
 
         self.config_bg()
         
-        # Load and insert DBX.
         self.dockbar = db.DockBar(self)
         self.dockbar.set_orient(self.get_orient())
         self.dockbar.set_expose_on_clear(True)
@@ -110,7 +104,6 @@ class DockBarXFCEPlug(gtk.Plug):
     def xfconf_get_panel (self, prop, default=None):
         return self.xfconf_get(self.panel_prop, prop, default)
     
-    # Signal fired when xfconf changes.
     def xfconf_changed (self, channel, prop, val):
         if channel != "xfce4-panel": return
         if self.panel_prop in prop and self.mode == 2:
@@ -129,13 +122,11 @@ class DockBarXFCEPlug(gtk.Plug):
                 self.pattern_from_dbus()
         self.queue_draw()
     
-    # Signal fired when the gtk theme changes.
     def theme_changed (self, obj, prop):
         if self.mode == 2:
             self.pattern_from_dbus()
             self.queue_draw()
     
-    # Configure panel background.
     def config_bg (self):
         self.mode = self.xfconf_get_dbx("mode", 2)
         if self.mode == 1:
@@ -146,13 +137,11 @@ class DockBarXFCEPlug(gtk.Plug):
         else:
             self.pattern_from_dbus()
     
-    # Create a cairo pattern from given color.
     def color_pattern (self, color, alpha):
         if gtk.gdk.screen_get_default().get_rgba_colormap() is None: alpha = 100
         self.pattern = cairo.SolidPattern(color.red_float, color.green_float,
          color.blue_float, alpha / 100.0)
 
-    # Create a cairo pattern from given image.
     def image_pattern (self, image):
         self.offset = self.xfconf_get_dbx("offset", 0)
         try:
@@ -169,7 +158,6 @@ class DockBarXFCEPlug(gtk.Plug):
             self.pattern_from_dbus()
             return
     
-    # Create a pattern from dbus.
     def pattern_from_dbus (self):
         bgstyle = self.xfconf_get_panel("background-style", 0)
         image = self.xfconf_get_panel("background-image", "")
@@ -183,7 +171,6 @@ class DockBarXFCEPlug(gtk.Plug):
             style = self.get_style()
             self.color_pattern(style.bg[gtk.STATE_NORMAL], alpha)
     
-    # Returns an orientation to DBX.
     def get_orient (self):
         self.orient = self.xfconf_get_dbx("orient", "down")
         
@@ -199,7 +186,6 @@ class DockBarXFCEPlug(gtk.Plug):
         
         return self.orient
     
-    # Sets expand and returns max_size to DBX.
     def get_size (self):
         max_size = self.xfconf_get_dbx("max-size", 0)
         if max_size < 1: max_size = 32767
@@ -211,11 +197,10 @@ class DockBarXFCEPlug(gtk.Plug):
     # and needs to be added again.
     def readd_container (self, container):
         self.add(container)
-        self.dockbar.set_max_size(self.max_size)
+        self.dockbar.set_max_size(self.get_size())
         container.show_all()
 
-    # This is basically going to do what xfce4-panel
-    # does on its own expose events.
+    # Imitates xfce4-panel's expose event.
     def do_expose_event (self, event):
         self.window.set_back_pixmap(None, False)
         ctx = self.window.cairo_create()
@@ -229,7 +214,6 @@ class DockBarXFCEPlug(gtk.Plug):
         if self.get_child():
             self.propagate_expose(self.get_child(), event)
 
-    # Destructor?
     def destroy (self, widget, data=None):
         gtk.main_quit()
 

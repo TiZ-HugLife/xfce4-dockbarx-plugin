@@ -22,7 +22,6 @@ using Gtk;
 
 
 class PrefDialog : Dialog {
-
     private DockbarXPlugin    plugin;
     private RadioButton       bottom_radio;
     private RadioButton       top_radio;
@@ -37,16 +36,12 @@ class PrefDialog : Dialog {
     private CheckButton       expand_check;
 
     public PrefDialog (DockbarXPlugin plugin) {
-        // Preliminary stuff.
         this.plugin = plugin;
         title = "DockbarX Preferences";
         response.connect((i) => { destroy(); });
-
-        // Make some actual wiggits.
         unowned VBox content = get_content_area() as VBox;
         content.spacing = 12;
 
-        // Let's get our fields out of the way first.
         color_radio = new RadioButton.with_label(null, "Solid color");
         image_radio = new RadioButton.with_label_from_widget(
          color_radio, "Background image");
@@ -71,20 +66,17 @@ class PrefDialog : Dialog {
         bottom_radio = new RadioButton.with_label(null, lab1);
         top_radio = new RadioButton.with_label_from_widget(bottom_radio, lab2);
 
-        // Now let's make the other stuff.
         var orient_frame = new Frame("Orientation");
         var color_frame = new Frame(null);
         color_frame.label_widget = color_radio;
         var image_frame = new Frame(null);
         image_frame.label_widget = image_radio;
 
-        // Assemble the orientation frame.
         var orient_box = new HBox(false, 8);
         orient_box.pack_start(bottom_radio, true, true);
         orient_box.pack_start(top_radio, true, true);
         orient_frame.add(orient_box);
 
-        // Assemble the color frame.
         var color_table = new Table(2, 2, false);
         color_table.column_spacing = 8;
         var color_label = new Label("Color:");
@@ -97,7 +89,6 @@ class PrefDialog : Dialog {
          AttachOptions.FILL, 0, 0, 0);
         color_frame.add(color_table);
 
-        // Assemble the image frame.
         var image_table = new Table(2, 2, false);
         image_table.column_spacing = 8;
         var image_label = new Label("Image:");
@@ -110,13 +101,11 @@ class PrefDialog : Dialog {
          AttachOptions.FILL, 0, 0, 0);
         image_frame.add(image_table);
         
-        // Asseemble the size box.
         var size_box = new HBox(false, 2);
         size_box.pack_start(new Label("Max size:"));
         size_box.pack_start(max_size_spin);
         size_box.pack_start(expand_check);
 
-        // Put it all together.
         if (!plugin.free_orient) { content.pack_start(orient_frame); }
         content.pack_start(blend_radio);
         content.pack_start(color_frame);
@@ -124,7 +113,6 @@ class PrefDialog : Dialog {
         content.pack_start(size_box);
         add_button(Stock.CLOSE, ResponseType.CLOSE);
 
-        // Set initial values.
         bottom_radio.active = plugin.orient == "bottom" ||
          plugin.orient == "left";
         top_radio.active = plugin.orient == "top" || plugin.orient == "right";
@@ -140,7 +128,6 @@ class PrefDialog : Dialog {
         max_size_spin.value = plugin.max_size;
         expand_check.active = plugin.expand;
 
-        // Signals, yo.
         bottom_radio.toggled.connect(() => {
             if (plugin.orientation == Orientation.HORIZONTAL) {
                 plugin.orient = bottom_radio.active ? "bottom" : "top";
@@ -183,7 +170,6 @@ class PrefDialog : Dialog {
             plugin.expand = expand_check.active;
         });
 
-        // Get the show on the road.
         show_all();
     }
 }
