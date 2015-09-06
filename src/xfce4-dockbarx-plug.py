@@ -219,7 +219,5 @@ class DockBarXFCEPlug(gtk.Plug):
 
 
 if __name__ == '__main__':
-    # Wait for just one second, make sure config files and the like get settled.
-    import time; time.sleep(1)
     dbx = DockBarXFCEPlug()
     gtk.main()
