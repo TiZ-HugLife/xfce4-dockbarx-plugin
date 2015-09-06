@@ -62,7 +62,7 @@ public class DockbarXPlugin : PanelPlugin {
         alpha = xfc.get_int("/alpha", 100);
         image = xfc.get_string("/image", "");
         offset = xfc.get_int("/offset", 0);
-        max_size = xfc.get_int("/max_size", 0);
+        max_size = xfc.get_int("/max-size", 0);
         orient = xfc.get_string("/orient", "bottom");
         expand = xfc.get_bool("/expand", false);
         
@@ -72,7 +72,7 @@ public class DockbarXPlugin : PanelPlugin {
         Property.bind(xfc, "/alpha", typeof(int), this, "alpha");
         Property.bind(xfc, "/image", typeof(string), this, "image");
         Property.bind(xfc, "/offset", typeof(int), this, "offset");
-        Property.bind(xfc, "/max_size", typeof(int), this, "max_size");
+        Property.bind(xfc, "/max-size", typeof(int), this, "max-size");
         Property.bind(xfc, "/orient", typeof(string), this, "orient");
         Property.bind(xfc, "/expand", typeof(bool), this, "expand");
 

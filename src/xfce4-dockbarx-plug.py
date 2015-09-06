@@ -118,7 +118,7 @@ class DockBarXFCEPlug(gtk.Plug):
         elif self.dbx_prop in prop:
             if "orient" in prop:  self.dockbar.set_orient(self.get_orient())
             elif "mode" in prop:  self.config_bg()
-            elif "max_size" in prop or "expand" in prop:
+            elif "max-size" in prop or "expand" in prop:
                 self.dockbar.set_max_size(self.get_size())
             elif self.mode == 0 and ("color" in prop or "alpha" in prop):
                 self.color_pattern(gtk.gdk.color_parse(self.xfconf_get_dbx(
@@ -201,8 +201,8 @@ class DockBarXFCEPlug(gtk.Plug):
     
     # Sets expand and returns max_size to DBX.
     def get_size (self):
-        max_size = self.xfconf_get_dbx("max_size", 0)
-        if max_size < 1: max_size = 4096
+        max_size = self.xfconf_get_dbx("max-size", 0)
+        if max_size < 1: max_size = 32767
         self.expand = self.xfconf_get_dbx("expand", False)
         return max_size
     

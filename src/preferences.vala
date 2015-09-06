@@ -57,8 +57,8 @@ class PrefDialog : Dialog {
         alpha_scale.value_pos = PositionType.RIGHT;
         image_button = new FileChooserButton("Select background image",
          FileChooserAction.OPEN);
-        offset_spin = new SpinButton.with_range(-4096, 4096, 1);
-        max_size_spin = new SpinButton.with_range(0, 4096, 1);
+        offset_spin = new SpinButton.with_range(-32767, 32767, 1);
+        max_size_spin = new SpinButton.with_range(0, 32767, 1);
         expand_check = new CheckButton.with_label("Expand");
 
         // Bottom/Top change to Left/Right if the panel's vertical.
