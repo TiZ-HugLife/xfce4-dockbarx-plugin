@@ -126,7 +126,7 @@ class PrefDialog : Dialog {
         content.pack_start(color_frame);
         content.pack_start(image_frame);
         content.pack_start(size_box);
-        add_button(Stock.APPLY, ResponseType.APPLY);
+        add_button(Stock.APPLY, ResponseType.CLOSE);
 
         // Set initial values.
         bottom_radio.active = plugin.orient == "bottom" ||
