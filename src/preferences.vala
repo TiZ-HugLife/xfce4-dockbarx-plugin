@@ -122,7 +122,7 @@ class PrefDialog : Dialog {
         content.pack_start(color_frame);
         content.pack_start(image_frame);
         content.pack_start(size_box);
-        add_button(Stock.APPLY, ResponseType.CLOSE);
+        add_button(Stock.CLOSE, ResponseType.CLOSE);
 
         // Set initial values.
         bottom_radio.active = plugin.orient == "bottom" ||
@@ -137,6 +137,7 @@ class PrefDialog : Dialog {
         alpha_scale.set_value(plugin.alpha);
         image_button.set_filename(plugin.image);
         offset_spin.value = plugin.offset;
+        max_size_spin.value = plugin.max_size;
         expand_check.active = plugin.expand;
 
         // Signals, yo.
