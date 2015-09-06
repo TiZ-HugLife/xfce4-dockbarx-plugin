@@ -54,28 +54,27 @@ public class DockbarXPlugin : PanelPlugin {
         // application, xfce4-dockbarx-plug.
         
         Xfconf.init();
-        xfc = new Channel("xfce4-panel");
-        prop = @"/plugins/plugin-$unique_id/";
+        xfc = new Channel.with_property_base("xfce4-panel",get_property_base());
         
         // Load initial settings.
-        bgmode = xfc.get_int(prop + "bgmode", 2);
-        color = xfc.get_string(prop + "color", "#000000");
-        alpha = xfc.get_int(prop + "alpha", 100);
-        image = xfc.get_string(prop + "image", "");
-        offset = xfc.get_int(prop + "offset", 0);
-        max_size = xfc.get_int(prop + "max_size", 0);
-        orient = xfc.get_string(prop + "orient", "bottom");
-        expand = xfc.get_bool(prop + "expand", false);
+        bgmode = xfc.get_int("/bgmode", 2);
+        color = xfc.get_string("/color", "#000");
+        alpha = xfc.get_int("/alpha", 100);
+        image = xfc.get_string("/image", "");
+        offset = xfc.get_int("/offset", 0);
+        max_size = xfc.get_int("/max_size", 0);
+        orient = xfc.get_string("/orient", "bottom");
+        expand = xfc.get_bool("/expand", false);
         
         // Bind properties to xfconf.
-        Property.bind(xfc, prop + "mode", typeof(int), this, "bgmode");
-        Property.bind(xfc, prop + "color", typeof(string), this, "color");
-        Property.bind(xfc, prop + "alpha", typeof(int), this, "alpha");
-        Property.bind(xfc, prop + "image", typeof(string), this, "image");
-        Property.bind(xfc, prop + "offset", typeof(int), this, "offset");
-        Property.bind(xfc, prop + "max_size", typeof(int), this, "max_size");
-        Property.bind(xfc, prop + "orient", typeof(string), this, "orient");
-        Property.bind(xfc, prop + "expand", typeof(bool), this, "expand");
+        Property.bind(xfc, "/mode", typeof(int), this, "bgmode");
+        Property.bind(xfc, "/color", typeof(string), this, "color");
+        Property.bind(xfc, "/alpha", typeof(int), this, "alpha");
+        Property.bind(xfc, "/image", typeof(string), this, "image");
+        Property.bind(xfc, "/offset", typeof(int), this, "offset");
+        Property.bind(xfc, "/max_size", typeof(int), this, "max_size");
+        Property.bind(xfc, "/orient", typeof(string), this, "orient");
+        Property.bind(xfc, "/expand", typeof(bool), this, "expand");
 
         // Create the socket.
         socket = new Gtk.Socket();
