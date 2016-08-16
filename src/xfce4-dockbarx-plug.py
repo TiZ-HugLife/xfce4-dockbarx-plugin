@@ -81,11 +81,10 @@ class DockBarXFCEPlug(gtk.Plug):
          if "plugin-ids" in k and int(options.plugin_id) in v][0][:-10]
         self.bus.add_signal_receiver(self.xfconf_changed, "PropertyChanged",
          "org.xfce.Xfconf", "org.xfce.Xfconf", "/org/xfce/Xfconf")
-
-        self.config_bg()
         
         self.dockbar = db.DockBar(self)
         self.dockbar.set_orient(self.get_orient())
+        self.config_bg()
         self.dockbar.set_expose_on_clear(True)
         self.dockbar.load()
         self.add(self.dockbar.get_container())
