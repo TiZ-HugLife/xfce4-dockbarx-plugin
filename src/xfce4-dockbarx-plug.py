@@ -31,7 +31,6 @@ import gtk
 import cairo
 import dbus
 
-import dockbarx.dockbar as db
 from optparse import OptionParser
 
 
@@ -42,6 +41,7 @@ class DockBarXFCEPlug(gtk.Plug):
     __gsignals__ = {"expose-event": "override"}
 
     def __init__ (self):
+        import dockbarx.dockbar as db
         self.bus = None
         self.xfconf = None
         self.dbx_prop = None
@@ -90,6 +90,7 @@ class DockBarXFCEPlug(gtk.Plug):
         self.add(self.dockbar.get_container())
         self.dockbar.set_max_size(self.get_size())
         self.show_all()
+        self.block_autohide_patch()
     
     # Convenience methods.
     def xfconf_get (self, prop_base, prop, default=None):
@@ -112,6 +113,8 @@ class DockBarXFCEPlug(gtk.Plug):
             elif "mode" in prop:  self.config_bg()
             elif "max-size" in prop or "expand" in prop:
                 self.dockbar.set_max_size(self.get_size())
+            elif "block-autohide" in prop:
+                pass  # This is one way comm from the plug to the socket.
             elif self.mode == 0 and ("color" in prop or "alpha" in prop):
                 self.color_pattern(gtk.gdk.color_parse(self.xfconf_get_dbx(
                  "color", "#000")), self.xfconf_get_dbx("alpha", 100))
@@ -121,7 +124,23 @@ class DockBarXFCEPlug(gtk.Plug):
                 self.pattern_from_dbus()
         self.queue_draw()
     
-    def theme_changed (self, obj, prop):
+    # The only function that sets anything in xfconf. It's a lazy way to
+    # communicate with the vala socket, but it does work!
+    def set_block_autohide (self):
+        self.xfconf.SetProperty("xfce4-panel", self.dbx_prop +
+         "block-autohide", self.dockbar.globals.get_shown_popup() != None or
+          self.dockbar.globals.gtkmenu_showing)
+    
+    # Terrible monkey patching... but this allows inhibiting autohide!
+    def block_autohide_patch (self):
+        import dockbarx.common as com
+        def new_setattr (obj, name, value):
+            super(com.Globals, obj).__setattr__(name, value)
+            if name in ("gtkmenu_showing", "shown_popup"):
+                self.set_block_autohide()
+        com.Globals.__setattr__ = new_setattr
+    
+    def theme_changed (self, obj=None, prop=None):
         if self.mode == 2:
             self.pattern_from_dbus()
             self.queue_draw()

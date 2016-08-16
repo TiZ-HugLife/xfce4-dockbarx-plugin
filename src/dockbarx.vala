@@ -41,8 +41,15 @@ public class DockbarXPlugin : PanelPlugin {
     public  int          max_size    { get; set; }
     public  string       orient      { get; set; }
     public  bool         free_orient { get; set; }
+    private bool         _block_ah = false;
     public  Channel      xfc;
     public  string       prop;
+    
+    // This inhibits autohide whenever xfconf says to.
+    public bool block_ah {
+        get { return _block_ah; } 
+        set { block_autohide(_block_ah = value); }
+    }
 
     public override void @construct () {
         // This program does one thing, and one thing only:
@@ -60,6 +67,7 @@ public class DockbarXPlugin : PanelPlugin {
         max_size = xfc.get_int("/max-size", 0);
         orient = xfc.get_string("/orient", "bottom");
         expand = xfc.get_bool("/expand", false);
+        block_ah = xfc.get_bool("/block-autohide", false);
         
         Property.bind(xfc, "/mode", typeof(int), this, "bgmode");
         Property.bind(xfc, "/color", typeof(string), this, "color");
@@ -69,6 +77,7 @@ public class DockbarXPlugin : PanelPlugin {
         Property.bind(xfc, "/max-size", typeof(int), this, "max-size");
         Property.bind(xfc, "/orient", typeof(string), this, "orient");
         Property.bind(xfc, "/expand", typeof(bool), this, "expand");
+        Property.bind(xfc, "/block-autohide", typeof(bool), this, "block_ah");
 
         socket = new Gtk.Socket();
         add(socket);
