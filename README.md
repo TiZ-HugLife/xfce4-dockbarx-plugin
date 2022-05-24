@@ -1,3 +1,7 @@
+***IMPORTANT:*** I have discontinued work on this project and no longer maintain it; I migrated to [xfce4-docklike-plugin](https://gitlab.xfce.org/panel-plugins/xfce4-docklike-plugin) when I was still on XFCE, but I have migrated to Plasma as of January 2022. I recommend the docklike plugin for those who want dock-style tasklist functionality on XFCE; or honestly, any other DE, because they all integrate that functionality much better.
+
+This repo will soon be archived. The date of this writing is May 24, 2022.
+
 # xfce4-dockbarx-plugin
 ### ver. 0.5
 
@@ -49,4 +53,4 @@ The panel will probably not detect the plugin unless you install it in the /usr 
 * And the github community to whom I entrust the future of this plugin.
 
 ## I want to make the plugin better!
-Awesome! Fork the repo and send me pull requests! I will probably merge any request I get. The future of this plugin is in your hands now. :)
+Awesome! Fork the repo and tell people about it. The future of this plugin is in your hands now.
